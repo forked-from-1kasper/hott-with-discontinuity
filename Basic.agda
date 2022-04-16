@@ -34,6 +34,38 @@ data I : Set where
   i₀ : I
   i₁ : I
 
+data 𝟎 : Set where
+
+data 𝟏 : Set where
+  ★ : 𝟏
+
+instance
+  𝟏-instance : 𝟏
+  𝟏-instance = ★
+
+data 𝟐 : Set where
+  0₂ : 𝟐
+  1₂ : 𝟐
+
+data Nat : Set where
+  zero : Nat
+  succ : Nat → Nat
+{-# BUILTIN NATURAL Nat #-}
+
+record number {u} (A : Type u) : Type (lsuc u) where
+  field
+    constraint : Nat → Type u
+    from-nat : (n : Nat) {{_ : constraint n}} → A
+
+open number {{...}} public using (from-nat)
+
+{-# BUILTIN FROMNAT from-nat #-}
+
+instance
+  I-nat : number I
+  I-nat = record { constraint = λ { zero → 𝟏; (succ zero) → 𝟏; _ → 𝟎 };
+                   from-nat = λ { zero → i₀; (succ zero) → i₁ } }
+
 neg : I → I
 neg i₀ = i₁
 neg i₁ = i₀
@@ -44,26 +76,26 @@ continuous-∘ : ∀ {u v w} {A : Type u} {B : Type v} {C : Type w} {f : B → C
                  continuous f → continuous g → continuous (f ∘ g)
 continuous-∘ {A = A} {B = B} {C = C} {f = f} {g = g} μ η = continuous-com {B = λ _ → B} {C = λ _ → C} (λ _ → f) g (λ _ → μ) η
 
-data PathP {u} (A : I → Type u) (μ : continuous A) : A i₀ → A i₁ → Type u where
-  weg : (f : (i : I) → A i) → continuous f → PathP A μ (f i₀) (f i₁)
+data PathP {u} (A : I → Type u) (μ : continuous A) : A 0 → A 1 → Type u where
+  weg : (f : (i : I) → A i) → continuous f → PathP A μ (f 0) (f 1)
 
-module Application {u} {A : I → Type u} {μ : continuous A} {a : A i₀} {b : A i₁} where
+module Application {u} {A : I → Type u} {μ : continuous A} {a : A 0} {b : A 1} where
   at : PathP A μ a b → (i : I) → A i
   at (weg φ _) i = φ i
 
   at-continuous : (p : PathP A μ a b) → continuous (at p)
   at-continuous (weg _ μ) = μ
 
-  postulate at-i₀ : (p : PathP A μ a b) → (at p i₀) ↦ a
-  postulate at-i₁ : (p : PathP A μ a b) → (at p i₁) ↦ b
-  {-# REWRITE at-i₀ at-i₁ #-}
+  postulate at-0 : (p : PathP A μ a b) → (at p 0) ↦ a
+  postulate at-1 : (p : PathP A μ a b) → (at p 1) ↦ b
+  {-# REWRITE at-0 at-1 #-}
 
 open Application
 
 idp : ∀ {u} {A : Type u} (a : A) → PathP (λ _ → A) (continuous-const _ _ A) a a
 idp {A = A} a = weg (λ _ → a) (continuous-const A I a)
 
-_⁻¹ : ∀ {u} {A : I → Type u} {μ : continuous A} {a : A i₀} {b : A i₁} →
+_⁻¹ : ∀ {u} {A : I → Type u} {μ : continuous A} {a : A 0} {b : A 1} →
         PathP A μ a b → PathP (A ∘ neg) (continuous-∘ μ continuous-neg) b a
 _⁻¹ {A = A} (weg φ μ) = weg (com {A = I} {B = λ _ → I} {C = A} (λ _ → φ) neg)
                             (continuous-com (λ _ → φ) neg (λ _ → μ) continuous-neg)
@@ -71,7 +103,7 @@ _⁻¹ {A = A} (weg φ μ) = weg (com {A = I} {B = λ _ → I} {C = A} (λ _ →
 Path : ∀ {u} (A : Type u) → A → A → Type u
 Path A = PathP (λ _ → A) (continuous-const _ _ A)
 
-seg : Path I i₀ i₁
+seg : Path I 0 1
 seg = weg (idfun I) (continuous-idfun I)
 
 I-rec : ∀ {u} {A : Type u} (a b : A) → Path A a b → I → A
@@ -89,8 +121,3 @@ _~_ {A = A} {B = B} f g = (x : A) → Path (B x) (f x) (g x)
 
 data Id {u} (A : Type u) : A → A → Type u where
   refl : (a : A) → Id A a a
-
-data Nat : Set where
-  zero : Nat
-  suc  : Nat → Nat
-{-# BUILTIN NATURAL Nat #-}
