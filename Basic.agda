@@ -77,6 +77,9 @@ seg = weg (idfun I) (continuous-idfun I)
 I-rec : ∀ {u} {A : Type u} (a b : A) → Path A a b → I → A
 I-rec a b p = at p
 
+I-rec-continuous : ∀ {u} {A : Type u} {a b : A} (p : Path A a b) → continuous (I-rec a b p)
+I-rec-continuous p = at-continuous p
+
 ap : ∀ {u v} {A : Type u} {B : Type v} (f : A → B) → continuous f →
      {a b : A} → Path A a b → Path B (f a) (f b)
 ap f μ (weg φ η) = weg (f ∘ φ) (continuous-∘ μ η)
