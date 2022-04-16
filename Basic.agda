@@ -47,6 +47,19 @@ continuous-∘ {A = A} {B = B} {C = C} {f = f} {g = g} μ η = continuous-com {B
 data PathP {u} (A : I → Type u) (μ : continuous A) : A i₀ → A i₁ → Type u where
   weg : (f : (i : I) → A i) → continuous f → PathP A μ (f i₀) (f i₁)
 
+module Application {u} {A : I → Type u} {μ : continuous A} {a : A i₀} {b : A i₁} where
+  at : PathP A μ a b → (i : I) → A i
+  at (weg φ _) i = φ i
+
+  at-continuous : (p : PathP A μ a b) → continuous (at p)
+  at-continuous (weg _ μ) = μ
+
+  postulate at-i₀ : (p : PathP A μ a b) → (at p i₀) ↦ a
+  postulate at-i₁ : (p : PathP A μ a b) → (at p i₁) ↦ b
+  {-# REWRITE at-i₀ at-i₁ #-}
+
+open Application
+
 idp : ∀ {u} {A : Type u} (a : A) → PathP (λ _ → A) (continuous-const _ _ A) a a
 idp {A = A} a = weg (λ _ → a) (continuous-const A I a)
 
@@ -61,9 +74,15 @@ Path A = PathP (λ _ → A) (continuous-const _ _ A)
 seg : Path I i₀ i₁
 seg = weg (idfun I) (continuous-idfun I)
 
+I-rec : ∀ {u} {A : Type u} (a b : A) → Path A a b → I → A
+I-rec a b p = at p
+
 ap : ∀ {u v} {A : Type u} {B : Type v} (f : A → B) → continuous f →
      {a b : A} → Path A a b → Path B (f a) (f b)
 ap f μ (weg φ η) = weg (f ∘ φ) (continuous-∘ μ η)
+
+_~_ : ∀ {u v} {A : Type u} {B : A → Type v} (f g : (x : A) → B x) → Type (u ⊔ v)
+_~_ {A = A} {B = B} f g = (x : A) → Path (B x) (f x) (g x)
 
 data Id {u} (A : Type u) : A → A → Type u where
   refl : (a : A) → Id A a a
