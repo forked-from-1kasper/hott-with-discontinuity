@@ -85,7 +85,7 @@ open number {{...}} public using (from-nat)
 instance
   I-nat : number I
   I-nat = record { constraint = λ { zero → 𝟏; (succ zero) → 𝟏; _ → 𝟎 };
-                   from-nat = λ { zero → i₀; (succ zero) → i₁ } }
+                   from-nat   = λ { zero → i₀; (succ zero) → i₁ } }
 
 neg : I → I
 neg i₀ = i₁
