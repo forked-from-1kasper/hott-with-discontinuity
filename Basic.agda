@@ -47,6 +47,9 @@ continuous-∘ {A = A} {B = B} {C = C} {f = f} {g = g} μ η = continuous-com {B
 data PathP {u} (A : I → Type u) (μ : continuous A) : A i₀ → A i₁ → Type u where
   weg : (f : (i : I) → A i) → continuous f → PathP A μ (f i₀) (f i₁)
 
+idp : ∀ {u} {A : Type u} (a : A) → PathP (λ _ → A) (continuous-const _ _ A) a a
+idp {A = A} a = weg (λ _ → a) (continuous-const A I a)
+
 _⁻¹ : ∀ {u} {A : I → Type u} {μ : continuous A} {a : A i₀} {b : A i₁} →
         PathP A μ a b → PathP (A ∘ neg) (continuous-∘ μ continuous-neg) b a
 _⁻¹ {A = A} (weg φ μ) = weg (com {A = I} {B = λ _ → I} {C = A} (λ _ → φ) neg)
@@ -54,6 +57,12 @@ _⁻¹ {A = A} (weg φ μ) = weg (com {A = I} {B = λ _ → I} {C = A} (λ _ →
 
 Path : ∀ {u} (A : Type u) → A → A → Type u
 Path A = PathP (λ _ → A) (continuous-const _ _ A)
+
+seg : Path I i₀ i₁
+seg = weg (idfun I) (continuous-idfun I)
+
+data Id {u} (A : Type u) : A → A → Type u where
+  refl : (a : A) → Id A a a
 
 data Nat : Set where
   zero : Nat
