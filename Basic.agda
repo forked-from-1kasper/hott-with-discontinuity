@@ -61,6 +61,10 @@ Path A = PathP (λ _ → A) (continuous-const _ _ A)
 seg : Path I i₀ i₁
 seg = weg (idfun I) (continuous-idfun I)
 
+ap : ∀ {u v} {A : Type u} {B : Type v} (f : A → B) → continuous f →
+     {a b : A} → Path A a b → Path B (f a) (f b)
+ap f μ (weg φ η) = weg (f ∘ φ) (continuous-∘ μ η)
+
 data Id {u} (A : Type u) : A → A → Type u where
   refl : (a : A) → Id A a a
 
