@@ -72,6 +72,13 @@ neg i₁ = i₀
 
 postulate continuous-neg : continuous neg
 
+postulate
+  coe            : ∀ {u} (A : I → Type u) → continuous A → (i : I) → A 0 → A i
+  coe-continuous : ∀ {u} (A : I → Type u) (μ : continuous A) (i : I) → continuous (coe A μ i)
+  coe-const      : ∀ {u} (A : Type u) (i : I) → coe (λ _ → A) (continuous-const _ _ A) i ↦ idfun A
+  coe-idfun      : ∀ {u} (A : I → Type u) (μ : continuous A) → coe A μ 0 ↦ idfun (A 0)
+{-# REWRITE coe-const coe-idfun #-}
+
 continuous-∘ : ∀ {u v w} {A : Type u} {B : Type v} {C : Type w} {f : B → C} {g : A → B} →
   continuous f → continuous g → continuous (f ∘ g)
 continuous-∘ {A = A} {B = B} {C = C} {f = f} {g = g} μ η =
@@ -103,6 +110,12 @@ _⁻¹ : ∀ {u} {A : I → Type u} {μ : continuous A} {a : A 0} {b : A 1} →
         PathP A μ a b → PathP (A ∘ neg) (continuous-∘ μ continuous-neg) b a
 _⁻¹ {A = A} (weg φ μ) = weg (com {A = I} {B = I} {C = A} φ neg)
                             (continuous-com φ neg μ continuous-neg)
+
+transport : ∀ {u} {A B : Type u} → Path (Type u) A B → A → B
+transport (weg φ μ) = coe φ μ 1
+
+transport-continuous : ∀ {u} {A B : Type u} (p : Path (Type u) A B) → continuous (transport p)
+transport-continuous (weg φ μ) = coe-continuous φ μ 1
 
 seg : Path I 0 1
 seg = weg (idfun I) (continuous-idfun I)
