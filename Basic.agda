@@ -177,6 +177,9 @@ module Circle {u} (C : S¹ → Type u) (μ : continuous C) (c : C base)
   S¹-ind : (x : S¹) → C x
   S¹-ind base = c
 
+  postulate S¹-β : (i : I) → S¹-ind (loop i) ↦ at p i
+  {-# REWRITE S¹-β #-}
+
   postulate S¹-ind-continuous : continuous S¹-ind
 
 open Circle
