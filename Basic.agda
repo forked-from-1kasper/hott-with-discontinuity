@@ -133,8 +133,17 @@ ap f μ (weg φ η) = weg (f ∘ φ) (continuous-∘ μ η)
 _~_ : ∀ {u v} {A : Type u} {B : A → Type v} (f g : (x : A) → B x) → Type (u ⊔ v)
 _~_ {A = A} {B = B} f g = (x : A) → Path (B x) (f x) (g x)
 
+hprop : ∀ {u} (A : Type u) → Type u
+hprop A = (a b : A) → Path A a b
+
+hset : ∀ {u} (A : Type u) → Type u
+hset A = (a b : A) → hprop (Path A a b)
+
 data Id {u} (A : Type u) : A → A → Type u where
   refl : (a : A) → Id A a a
+
+Id⇒Path : ∀ {u} {A : Type u} {a b : A} → Id A a b → Path A a b
+Id⇒Path (refl a) = idp a
 
 data Σ {u v} (A : Type u) (B : A → Type v) : Type (u ⊔ v) where
   _,_ : (a : A) → B a → Σ A B
