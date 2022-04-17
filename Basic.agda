@@ -145,8 +145,44 @@ pr₁ (a , b) = a
 pr₂ : ∀ {u v} {A : Type u} {B : A → Type v} (w : Σ A B) → B (pr₁ w)
 pr₂ (a , b) = b
 
+postulate Σ-η : ∀ {u v} (A : Type u) (B : A → Type v) (w : Σ A B) → (pr₁ w , pr₂ w) ↦ w
+{-# REWRITE Σ-η #-}
+
+Σ-ind : ∀ {u v w} {A : Type u} {B : A → Type v} (C : Σ A B → Type w) →
+          ((a : A) (b : B a) → C (a , b)) → (w : Σ A B) → C w
+Σ-ind C d (a , b) = d a b
+
 _×_ : ∀ {u v} → Type u → Type v → Type (u ⊔ v)
 A × B = Σ A (λ _ → B)
 
-postulate Σ-η : ∀ {u v} (A : Type u) (B : A → Type v) (w : Σ A B) → (pr₁ w , pr₂ w) ↦ w
-{-# REWRITE Σ-η #-}
+postulate
+  pr₁-continuous : ∀ {u v} {A : Type u} (B : A → Type v) → continuous (pr₁ {B = B})
+  pr₂-continuous : ∀ {u v} {A : Type u} (B : A → Type v) → continuous (pr₂ {B = B})
+
+data S¹ : Set where
+  base : S¹
+
+loop : I → S¹
+loop i₀ = base
+loop i₁ = base
+
+postulate loop-continuous : continuous loop
+
+loop-S¹ : Path S¹ base base
+loop-S¹ = weg loop loop-continuous
+
+module Circle {u} (C : S¹ → Type u) (μ : continuous C) (c : C base)
+              (p : PathP (C ∘ loop) (continuous-∘ μ loop-continuous) c c) where
+
+  S¹-ind : (x : S¹) → C x
+  S¹-ind base = c
+
+  postulate S¹-ind-continuous : continuous S¹-ind
+
+open Circle
+
+S¹-rec : ∀ {u} (C : Type u) (c : C) → Path C c c → S¹ → C
+S¹-rec C c p = S¹-ind (λ _ → C) (continuous-const _ _ C) c p
+
+S¹-rec-continuous : ∀ {u} (C : Type u) (c : C) (p : Path C c c) → continuous (S¹-rec C c p)
+S¹-rec-continuous C c p = S¹-ind-continuous (λ _ → C) (continuous-const _ _ C) c p
