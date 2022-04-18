@@ -133,6 +133,8 @@ data PathP {u} (A : I → Type u) (μ : continuous A) : A 0 → A 1 → Type u w
 postulate
   PathP-continuous : ∀ {u v} {X : Type u} (A : X → I → Type v) (μ : (x : X) → continuous (A x)) (a : (x : X) → A x 0) (b : (x : X) → A x 1) →
                        continuous A → continuous a → continuous b → continuous (λ (x : X) → PathP (A x) (μ x) (a x) (b x))
+  continuous-weg   : ∀ {u v} {X : Type u} (A : X → I → Type v) (μ : (x : X) → continuous (A x)) (f : (x : X) → (i : I) → A x i)
+                       (η : (x : X) → continuous (f x)) → continuous f → continuous (λ x → weg {A = A x} {μ = μ x} (f x) (η x))
 
   Π-continuous     : ∀ {u v w} {X : Type u} (A : X → Type v) (B : (x : X) → A x → Type w) →
                        continuous A → continuous B → continuous (λ (x : X) → Π (A x) (B x))
