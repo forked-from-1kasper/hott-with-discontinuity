@@ -184,6 +184,9 @@ open Application
 Path : ∀ {u} (A : Type u) → A → A → Type u
 Path A = PathP (λ _ → A) (continuous-const _ _ A)
 
+Path-continuous : ∀ {u} (A : Type u) → continuous (uncurry (Path A))
+Path-continuous A = PathP-continuous (λ _ → A) (continuous-const _ _ A)
+
 idp : ∀ {u} {A : Type u} (a : A) → Path A a a
 idp {A = A} a = weg (λ _ → a) (continuous-const A I a)
 
