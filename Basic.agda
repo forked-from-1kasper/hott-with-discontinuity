@@ -64,6 +64,9 @@ instance
   ℕ-number : number ℕ
   ℕ-number = record { constraint = λ _ → 𝟏; from-nat = λ n → n }
 
+Π : ∀ {u v} (A : Type u) (B : A → Type v) → Type (u ⊔ v)
+Π A B = (x : A) → B x
+
 data Σ {u v} (A : Type u) (B : A → Type v) : Type (u ⊔ v) where
   _,_ : (a : A) → B a → Σ A B
 
@@ -128,7 +131,7 @@ postulate
                        continuous A → continuous a → continuous b → continuous (λ (x : X) → PathP (A x) (μ x) (a x) (b x))
 
   Π-continuous     : ∀ {u v w} {X : Type u} (A : X → Type v) (B : (x : X) → A x → Type w) →
-                       continuous A → continuous B → continuous (λ (x : X) → (a : A x) → B x a)
+                       continuous A → continuous B → continuous (λ (x : X) → Π (A x) (B x))
 
   Σ-continuous     : ∀ {u v w} {X : Type u} (A : X → Type v) (B : (x : X) → A x → Type w) →
                        continuous A → continuous B → continuous (λ (x : X) → Σ (A x) (B x))
