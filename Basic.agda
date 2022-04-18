@@ -136,8 +136,7 @@ postulate
 continuous-idfun : ∀ {u} (A : Type u) → continuous (idfun A)
 continuous-idfun A = ∧-right (continuous-def A (λ _ → A) (idfun A)) (λ (n : ℕ) (g : □ n → A) (μ : continuous g) → μ)
 
-continuous-com : ∀ {u v w} {A : Type u} {B : Type v} {C : B → Type w} →
-                   (f : (b : B) → C b) → (g : A → B) →
+continuous-com : ∀ {u v w} {A : Type u} {B : Type v} {C : B → Type w} → (f : (b : B) → C b) → (g : A → B) →
                    continuous f → continuous g → continuous (com f g)
 continuous-com {A = A} {B = B} {C = C} f g μ η = ∧-right (continuous-def A (C ∘ g) (com f g))
   (λ (n : ℕ) (h : □ n → A) (σ : continuous h) →
