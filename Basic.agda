@@ -17,6 +17,10 @@ const A B a b = a
 _∘_ : ∀ {u v w} {A : Type u} {B : Type v} {C : Type w} → (B → C) → (A → B) → (A → C)
 (f ∘ g) x = f (g x)
 
+com : ∀ {u v w} {A : Type u} {B : Type v} {C : B → Type w} →
+        ((b : B) → C b) → (g : A → B) → ((a : A) → C (g a))
+com f g x = f (g x)
+
 data _∧_ {u v} (A : Prop u) (B : Prop v) : Prop (u ⊔ v) where
   ∧-intro : A → B → A ∧ B
 
@@ -28,10 +32,6 @@ A ⟷ B = (A → B) ∧ (B → A)
 
 ∧-right : ∀ {u v} {A : Prop u} {B : Prop v} → A ∧ B → B
 ∧-right (∧-intro a b) = b
-
-com : ∀ {u v w} {A : Type u} {B : Type v} {C : B → Type w} →
-        ((b : B) → C b) → (g : A → B) → ((a : A) → C (g a))
-com f g x = f (g x)
 
 data I : Set where
   i₀ : I
