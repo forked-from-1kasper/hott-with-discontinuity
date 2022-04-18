@@ -169,15 +169,18 @@ postulate
   PathP-continuous : ∀ {u} (A : I → Type u) (μ : continuous A) → continuous (uncurry (PathP A μ))
 
 module Application {u} {A : I → Type u} {μ : continuous A} {a : A 0} {b : A 1} where
-  at : PathP A μ a b → (i : I) → A i
-  at (weg φ _) i = φ i
+  ∂ : PathP A μ a b → (i : I) → A i
+  ∂ (weg φ _) i = φ i
 
-  at-continuous : (p : PathP A μ a b) → continuous (at p)
-  at-continuous (weg _ μ) = μ
+  ∂-continuous : (p : PathP A μ a b) → continuous (∂ p)
+  ∂-continuous (weg _ μ) = μ
 
-  postulate at-0 : (p : PathP A μ a b) → (at p 0) ↦ a
-  postulate at-1 : (p : PathP A μ a b) → (at p 1) ↦ b
-  {-# REWRITE at-0 at-1 #-}
+  postulate ∂-0 : (p : PathP A μ a b) → (∂ p) 0 ↦ a
+  postulate ∂-1 : (p : PathP A μ a b) → (∂ p) 1 ↦ b
+  {-# REWRITE ∂-0 ∂-1 #-}
+
+  nat : (w : PathP A μ a b × I) → A (pr₂ w)
+  nat w = ∂ (pr₁ w) (pr₂ w)
 
 open Application
 
@@ -205,10 +208,10 @@ seg : Path I 0 1
 seg = weg (idfun I) (continuous-idfun I)
 
 I-rec : ∀ {u} {A : Type u} (a b : A) → Path A a b → I → A
-I-rec a b p = at p
+I-rec a b p = ∂ p
 
 I-rec-continuous : ∀ {u} {A : Type u} {a b : A} (p : Path A a b) → continuous (I-rec a b p)
-I-rec-continuous p = at-continuous p
+I-rec-continuous = ∂-continuous
 
 ap : ∀ {u v} {A : Type u} {B : Type v} (f : A → B) → continuous f →
      {a b : A} → Path A a b → Path B (f a) (f b)
@@ -247,7 +250,7 @@ module Circle {u} (C : S¹ → Type u) (μ : continuous C) (c : C base)
   S¹-ind : (x : S¹) → C x
   S¹-ind base = c
 
-  postulate S¹-β : (i : I) → S¹-ind (loop i) ↦ at p i
+  postulate S¹-β : (i : I) → S¹-ind (loop i) ↦ (∂ p) i
   {-# REWRITE S¹-β #-}
 
   postulate S¹-ind-continuous : continuous S¹-ind
