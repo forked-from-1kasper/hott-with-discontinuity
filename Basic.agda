@@ -33,10 +33,6 @@ A ⟷ B = (A → B) ∧ (B → A)
 ∧-right : ∀ {u v} {A : Prop u} {B : Prop v} → A ∧ B → B
 ∧-right (∧-intro a b) = b
 
-data I : Set where
-  i₀ : I
-  i₁ : I
-
 data 𝟎 : Set where
 
 data 𝟏 : Set where
@@ -64,6 +60,10 @@ open number {{...}} public using (from-nat)
 
 {-# BUILTIN FROMNAT from-nat #-}
 
+instance
+  ℕ-number : number ℕ
+  ℕ-number = record { constraint = λ _ → 𝟏; from-nat = λ n → n }
+
 data Σ {u v} (A : Type u) (B : A → Type v) : Type (u ⊔ v) where
   _,_ : (a : A) → B a → Σ A B
 
@@ -83,14 +83,15 @@ postulate Σ-η : ∀ {u v} (A : Type u) (B : A → Type v) (w : Σ A B) → (pr
 _×_ : ∀ {u v} → Type u → Type v → Type (u ⊔ v)
 A × B = Σ A (λ _ → B)
 
+data I : Set where
+  i₀ : I
+  i₁ : I
+
 instance
   I-number : number I
   I-number =
     record { constraint = λ { zero → 𝟏; (succ zero) → 𝟏; _ → 𝟎 };
              from-nat   = λ { zero → i₀; (succ zero) → i₁ } }
-
-  ℕ-number : number ℕ
-  ℕ-number = record { constraint = λ _ → 𝟏; from-nat = λ n → n }
 
 neg : I → I
 neg i₀ = i₁
