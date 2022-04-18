@@ -88,6 +88,10 @@ curry f a b = f (a , b)
 uncurry : ∀ {u v w} {A : Type u} {B : Type v} {C : Type w} → (A → B → C) → (A × B → C)
 uncurry f w = f (pr₁ w) (pr₂ w)
 
+data _+_ {u v} (A : Type u) (B : Type v) : Type (u ⊔ v) where
+  inl : A → A + B
+  inr : B → A + B
+
 data I : Set where
   i₀ : I
   i₁ : I
@@ -140,6 +144,13 @@ postulate
   continuous-Σ-mk  : ∀ {u v w} (X : Type u) (A : X → Type v) (B : (x : X) → A x → Type w)
                        (f : (x : X) → A x) (g : (x : X) → B x (f x)) → continuous f → continuous g →
                        continuous {B = λ x → Σ (A x) (B x)} (λ x → (f x , g x))
+
+  +-continuous     : ∀ {u v w} {X : Type u} (A : X → Type v) (B : X → Type w) →
+                       continuous A → continuous B → continuous (λ x → A x + B x)
+  continuous-inl   : ∀ {u v w} {X : Type u} (A : X → Type v) (B : X → Type w) → (f : (x : X) → A x) →
+                       continuous f → continuous (λ x → inl {A = A x} {B = B x} (f x))
+  continuous-inr   : ∀ {u v w} {X : Type u} (A : X → Type v) (B : X → Type w) → (g : (x : X) → B x) →
+                       continuous g → continuous (λ x → inr {A = A x} {B = B x} (g x))
 
 continuous-idfun : ∀ {u} (A : Type u) → continuous (idfun A)
 continuous-idfun A = ∧-right (continuous-def A (λ _ → A) (idfun A)) (λ (n : ℕ) (g : □ n → A) (μ : continuous g) → μ)
