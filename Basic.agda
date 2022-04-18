@@ -114,13 +114,6 @@ postulate
     continuous f ⟷ ((n : ℕ) → (g : □ n → A) → continuous g → continuous (com f g))
 
 postulate
-  continuous-pr₁  : ∀ {u v} {A : Type u} (B : A → Type v) → continuous (pr₁ {B = B})
-  continuous-pr₂  : ∀ {u v} {A : Type u} (B : A → Type v) → continuous (pr₂ {B = B})
-  continuous-Σ-mk : ∀ {u v w} (X : Type u) (A : X → Type v) (B : (x : X) → A x → Type w)
-                      (f : (x : X) → A x) (g : (x : X) → B x (f x)) → continuous f → continuous g →
-                      continuous {B = λ x → Σ (A x) (B x)} (λ x → (f x , g x))
-
-postulate
   coe            : ∀ {u} (A : I → Type u) → continuous A → (i : I) → A 0 → A i
   coe-continuous : ∀ {u} (A : I → Type u) (μ : continuous A) (i : I) → continuous (coe A μ i)
   coe-const      : ∀ {u} (A : Type u) (i : I) → coe (λ _ → A) (continuous-const _ _ A) i ↦ idfun A
@@ -135,8 +128,14 @@ postulate
                        continuous A → continuous a → continuous b → continuous (λ (w : W) → PathP (A w) (μ w) (a w) (b w))
   Π-continuous     : ∀ {u v w} {W : Type u} (A : W → Type v) (B : Σ W A → Type w) →
                        continuous A → continuous B → continuous (λ (w : W) → (a : A w) → B (w , a))
+
   Σ-continuous     : ∀ {u v w} {W : Type u} (A : W → Type v) (B : Σ W A → Type w) →
                        continuous A → continuous B → continuous (λ (w : W) → Σ (A w) (B ∘ _,_ w))
+  continuous-pr₁   : ∀ {u v} {A : Type u} (B : A → Type v) → continuous (pr₁ {B = B})
+  continuous-pr₂   : ∀ {u v} {A : Type u} (B : A → Type v) → continuous (pr₂ {B = B})
+  continuous-Σ-mk  : ∀ {u v w} (X : Type u) (A : X → Type v) (B : (x : X) → A x → Type w)
+                       (f : (x : X) → A x) (g : (x : X) → B x (f x)) → continuous f → continuous g →
+                       continuous {B = λ x → Σ (A x) (B x)} (λ x → (f x , g x))
 
 continuous-idfun : ∀ {u} (A : Type u) → continuous (idfun A)
 continuous-idfun A = ∧-right (continuous-def A (λ _ → A) (idfun A)) (λ (n : ℕ) (g : □ n → A) (μ : continuous g) → μ)
