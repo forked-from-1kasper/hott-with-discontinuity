@@ -17,18 +17,21 @@ const A B a b = a
 _∘_ : ∀ {u v w} {A : Type u} {B : Type v} {C : Type w} → (B → C) → (A → B) → (A → C)
 (f ∘ g) x = f (g x)
 
+data _∧_ {u v} (A : Prop u) (B : Prop v) : Prop (u ⊔ v) where
+  ∧-intro : A → B → A ∧ B
+
+_⟷_ : ∀ {u v} → Prop u → Prop v → Prop (u ⊔ v)
+A ⟷ B = (A → B) ∧ (B → A)
+
+∧-left : ∀ {u v} {A : Prop u} {B : Prop v} → A ∧ B → A
+∧-left (∧-intro a b) = a
+
+∧-right : ∀ {u v} {A : Prop u} {B : Prop v} → A ∧ B → B
+∧-right (∧-intro a b) = b
+
 com : ∀ {u v w} {A : Type u} {B : Type v} {C : B → Type w} →
         ((b : B) → C b) → (g : A → B) → ((a : A) → C (g a))
 com f g x = f (g x)
-
-postulate continuous : ∀ {u v} {A : Type u} {B : A → Type v} → ((x : A) → B x) → Prop
-
-postulate
-  continuous-idfun : ∀ {u} (A : Type u) → continuous (idfun A)
-  continuous-const : ∀ {u v} (A : Type u) (B : Type v) (a : A) → continuous (const A B a)
-  continuous-com   : ∀ {u v w} {A : Type u} {B : Type v} {C : B → Type w} →
-                       (f : (b : B) → C b) → (g : A → B) →
-                       continuous f → continuous g → continuous (com f g)
 
 data I : Set where
   i₀ : I
@@ -47,30 +50,68 @@ data 𝟐 : Set where
   0₂ : 𝟐
   1₂ : 𝟐
 
-data Nat : Set where
-  zero : Nat
-  succ : Nat → Nat
-{-# BUILTIN NATURAL Nat #-}
+data ℕ : Set where
+  zero : ℕ
+  succ : ℕ → ℕ
+{-# BUILTIN NATURAL ℕ #-}
 
 record number {u} (A : Type u) : Type (lsuc u) where
   field
-    constraint : Nat → Type u
-    from-nat : (n : Nat) {{_ : constraint n}} → A
+    constraint : ℕ → Type u
+    from-nat : (n : ℕ) {{_ : constraint n}} → A
 
 open number {{...}} public using (from-nat)
 
 {-# BUILTIN FROMNAT from-nat #-}
 
+data Σ {u v} (A : Type u) (B : A → Type v) : Type (u ⊔ v) where
+  _,_ : (a : A) → B a → Σ A B
+
+pr₁ : ∀ {u v} {A : Type u} {B : A → Type v} → Σ A B → A
+pr₁ (a , b) = a
+
+pr₂ : ∀ {u v} {A : Type u} {B : A → Type v} (w : Σ A B) → B (pr₁ w)
+pr₂ (a , b) = b
+
+postulate Σ-η : ∀ {u v} (A : Type u) (B : A → Type v) (w : Σ A B) → (pr₁ w , pr₂ w) ↦ w
+{-# REWRITE Σ-η #-}
+
+Σ-ind : ∀ {u v w} {A : Type u} {B : A → Type v} (C : Σ A B → Type w) →
+          ((a : A) (b : B a) → C (a , b)) → (w : Σ A B) → C w
+Σ-ind C d (a , b) = d a b
+
+_×_ : ∀ {u v} → Type u → Type v → Type (u ⊔ v)
+A × B = Σ A (λ _ → B)
+
 instance
-  I-nat : number I
-  I-nat = record { constraint = λ { zero → 𝟏; (succ zero) → 𝟏; _ → 𝟎 };
-                   from-nat   = λ { zero → i₀; (succ zero) → i₁ } }
+  I-number : number I
+  I-number =
+    record { constraint = λ { zero → 𝟏; (succ zero) → 𝟏; _ → 𝟎 };
+             from-nat   = λ { zero → i₀; (succ zero) → i₁ } }
+
+  ℕ-number : number ℕ
+  ℕ-number = record { constraint = λ _ → 𝟏; from-nat = λ n → n }
 
 neg : I → I
 neg i₀ = i₁
 neg i₁ = i₀
 
-postulate continuous-neg : continuous neg
+□ : ℕ → Set
+□ zero     = I
+□ (succ n) = □ n × I
+
+postulate continuous : ∀ {u v} {A : Type u} {B : A → Type v} → ((x : A) → B x) → Prop
+
+postulate
+  continuous-const : ∀ {u v} (A : Type u) (B : Type v) (a : A) → continuous (const A B a)
+  continuous-neg   : continuous neg
+
+  continuous-def   : ∀ {u v} (A : Type u) (B : A → Type v) (f : (x : A) → B x) →
+    continuous f ⟷ ((n : ℕ) → (g : □ n → A) → continuous g → continuous (com f g))
+
+postulate
+  pr₁-continuous : ∀ {u v} {A : Type u} (B : A → Type v) → continuous (pr₁ {B = B})
+  pr₂-continuous : ∀ {u v} {A : Type u} (B : A → Type v) → continuous (pr₂ {B = B})
 
 postulate
   coe            : ∀ {u} (A : I → Type u) → continuous A → (i : I) → A 0 → A i
@@ -78,6 +119,17 @@ postulate
   coe-const      : ∀ {u} (A : Type u) (i : I) → coe (λ _ → A) (continuous-const _ _ A) i ↦ idfun A
   coe-idfun      : ∀ {u} (A : I → Type u) (μ : continuous A) → coe A μ 0 ↦ idfun (A 0)
 {-# REWRITE coe-const coe-idfun #-}
+
+continuous-idfun : ∀ {u} (A : Type u) → continuous (idfun A)
+continuous-idfun A = ∧-right (continuous-def A (λ _ → A) (idfun A)) (λ (n : ℕ) (g : □ n → A) (μ : continuous g) → μ)
+
+continuous-com   : ∀ {u v w} {A : Type u} {B : Type v} {C : B → Type w} →
+                     (f : (b : B) → C b) → (g : A → B) →
+                     continuous f → continuous g → continuous (com f g)
+continuous-com {A = A} {B = B} {C = C} f g μ η = ∧-right (continuous-def A (C ∘ g) (com f g))
+  (λ (n : ℕ) (h : □ n → A) (σ : continuous h) →
+    ∧-left (continuous-def B C f) μ n (g ∘ h)
+      (∧-left (continuous-def A (λ _ → B) g) η n h σ))
 
 continuous-∘ : ∀ {u v w} {A : Type u} {B : Type v} {C : Type w} {f : B → C} {g : A → B} →
   continuous f → continuous g → continuous (f ∘ g)
@@ -144,29 +196,6 @@ data Id {u} (A : Type u) : A → A → Type u where
 
 Id⇒Path : ∀ {u} {A : Type u} {a b : A} → Id A a b → Path A a b
 Id⇒Path (refl a) = idp a
-
-data Σ {u v} (A : Type u) (B : A → Type v) : Type (u ⊔ v) where
-  _,_ : (a : A) → B a → Σ A B
-
-pr₁ : ∀ {u v} {A : Type u} {B : A → Type v} → Σ A B → A
-pr₁ (a , b) = a
-
-pr₂ : ∀ {u v} {A : Type u} {B : A → Type v} (w : Σ A B) → B (pr₁ w)
-pr₂ (a , b) = b
-
-postulate Σ-η : ∀ {u v} (A : Type u) (B : A → Type v) (w : Σ A B) → (pr₁ w , pr₂ w) ↦ w
-{-# REWRITE Σ-η #-}
-
-Σ-ind : ∀ {u v w} {A : Type u} {B : A → Type v} (C : Σ A B → Type w) →
-          ((a : A) (b : B a) → C (a , b)) → (w : Σ A B) → C w
-Σ-ind C d (a , b) = d a b
-
-_×_ : ∀ {u v} → Type u → Type v → Type (u ⊔ v)
-A × B = Σ A (λ _ → B)
-
-postulate
-  pr₁-continuous : ∀ {u v} {A : Type u} (B : A → Type v) → continuous (pr₁ {B = B})
-  pr₂-continuous : ∀ {u v} {A : Type u} (B : A → Type v) → continuous (pr₂ {B = B})
 
 data S¹ : Set where
   base : S¹
