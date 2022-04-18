@@ -124,13 +124,14 @@ data PathP {u} (A : I → Type u) (μ : continuous A) : A 0 → A 1 → Type u w
   weg : (f : (i : I) → A i) → continuous f → PathP A μ (f 0) (f 1)
 
 postulate
-  PathP-continuous : ∀ {u v} {W : Type u} (A : W → I → Type v) (μ : (w : W) → continuous (A w)) (a : (w : W) → A w 0) (b : (w : W) → A w 1) →
-                       continuous A → continuous a → continuous b → continuous (λ (w : W) → PathP (A w) (μ w) (a w) (b w))
-  Π-continuous     : ∀ {u v w} {W : Type u} (A : W → Type v) (B : Σ W A → Type w) →
-                       continuous A → continuous B → continuous (λ (w : W) → (a : A w) → B (w , a))
+  PathP-continuous : ∀ {u v} {X : Type u} (A : X → I → Type v) (μ : (x : X) → continuous (A x)) (a : (x : X) → A x 0) (b : (x : X) → A x 1) →
+                       continuous A → continuous a → continuous b → continuous (λ (x : X) → PathP (A x) (μ x) (a x) (b x))
 
-  Σ-continuous     : ∀ {u v w} {W : Type u} (A : W → Type v) (B : Σ W A → Type w) →
-                       continuous A → continuous B → continuous (λ (w : W) → Σ (A w) (B ∘ _,_ w))
+  Π-continuous     : ∀ {u v w} {X : Type u} (A : X → Type v) (B : (x : X) → A x → Type w) →
+                       continuous A → continuous B → continuous (λ (x : X) → (a : A x) → B x a)
+
+  Σ-continuous     : ∀ {u v w} {X : Type u} (A : X → Type v) (B : (x : X) → A x → Type w) →
+                       continuous A → continuous B → continuous (λ (x : X) → Σ (A x) (B x))
   continuous-pr₁   : ∀ {u v} {A : Type u} (B : A → Type v) → continuous (pr₁ {B = B})
   continuous-pr₂   : ∀ {u v} {A : Type u} (B : A → Type v) → continuous (pr₂ {B = B})
   continuous-Σ-mk  : ∀ {u v w} (X : Type u) (A : X → Type v) (B : (x : X) → A x → Type w)
@@ -184,7 +185,7 @@ Path A = PathP (λ _ → A) (continuous-const _ _ A)
 Path-continuous : ∀ {u v} {A : Type u} {B : A → Type v} {f g : (x : A) → B x} → continuous B →
                     continuous f → continuous g → continuous (λ x → Path (B x) (f x) (g x))
 Path-continuous {A = A} {B = B} {f = f} {g = g} α β γ =
-  PathP-continuous {W = A} (const _ I ∘ B) (λ x → continuous-const _ _ (B x)) f g
+  PathP-continuous {X = A} (const _ I ∘ B) (λ x → continuous-const _ _ (B x)) f g
     (continuous-∘ (continuous-const² _ I) α) β γ
 
 idp : ∀ {u} {A : Type u} (a : A) → Path A a a
