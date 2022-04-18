@@ -109,7 +109,7 @@ postulate
   continuous-neg   : continuous neg
 
   continuous-const  : ∀ {u v} (A : Type u) (B : Type v) (a : A) → continuous (const A B a)
-  continuous-const² : ∀ {u v} (A : Type u) (B : Type v) → continuous (const A B)
+  continuous-const′ : ∀ {u v} (A : Type u) (B : Type v) → continuous (const A B)
   continuous-def    : ∀ {u v} (A : Type u) (B : A → Type v) (f : (x : A) → B x) →
     continuous f ⟷ ((n : ℕ) → (g : □ n → A) → continuous g → continuous (com f g))
 
@@ -186,7 +186,7 @@ Path-continuous : ∀ {u v} {A : Type u} {B : A → Type v} {f g : (x : A) → B
                     continuous f → continuous g → continuous (λ x → Path (B x) (f x) (g x))
 Path-continuous {A = A} {B = B} {f = f} {g = g} α β γ =
   PathP-continuous {X = A} (const _ I ∘ B) (λ x → continuous-const _ _ (B x)) f g
-    (continuous-∘ (continuous-const² _ I) α) β γ
+    (continuous-∘ (continuous-const′ _ I) α) β γ
 
 idp : ∀ {u} {A : Type u} (a : A) → Path A a a
 idp {A = A} a = weg (λ _ → a) (continuous-const A I a)
