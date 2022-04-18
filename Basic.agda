@@ -167,6 +167,10 @@ data PathP {u} (A : I → Type u) (μ : continuous A) : A 0 → A 1 → Type u w
 
 postulate
   PathP-continuous : ∀ {u} (A : I → Type u) (μ : continuous A) → continuous (uncurry (PathP A μ))
+  Π-continuous     : ∀ {u v w} {W : Type u} (A : W → Type v) (B : Σ W A → Type w) →
+                       continuous A → continuous B → continuous (λ (w : W) → (a : A w) → B (w , a))
+  Σ-continuous     : ∀ {u v w} {W : Type u} (A : W → Type v) (B : Σ W A → Type w) →
+                       continuous A → continuous B → continuous (λ (w : W) → Σ (A w) (B ∘ _,_ w))
 
 module Application {u} {A : I → Type u} {μ : continuous A} {a : A 0} {b : A 1} where
   ∂ : PathP A μ a b → (i : I) → A i
