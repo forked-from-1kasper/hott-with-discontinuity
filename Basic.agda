@@ -247,6 +247,11 @@ _⁻¹ : ∀ {u} {A : I → Type u} {μ : continuous A} {a : A 0} {b : A 1} →
 _⁻¹ {A = A} p = weg (com {A = I} {B = I} {C = A} (∂ p) neg)
                     (continuous-com (∂ p) neg (∂-continuous p) continuous-neg)
 
+_⬝_ : ∀ {u} {A : Type u} {a b c : A} → Path A a b → Path A b c → Path A a c
+_⬝_ {A = A} {a = a} {b = b} {c = c} p q = coe (Path A a ∘ ∂ q)
+  (Path-continuous {f = λ _ → a} (continuous-const _ _ A)
+    (continuous-const _ _ a) (∂-continuous q)) 1 p
+
 transport : ∀ {u} {A B : Type u} → Path (Type u) A B → A → B
 transport p = coe (∂ p) (∂-continuous p) 1
 
