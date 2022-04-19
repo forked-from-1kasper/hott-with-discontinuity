@@ -298,8 +298,8 @@ postulate loop-continuous : continuous loop
 loop-S¹ : Path S¹ base base
 loop-S¹ = weg loop loop-continuous
 
-module Circle {u} (C : S¹ → Type u) (μ : continuous C) (c : C base)
-              (p : PathP (C ∘ loop) (continuous-∘ μ loop-continuous) c c) where
+module _ {u} (C : S¹ → Type u) (μ : continuous C) (c : C base)
+         (p : PathP (C ∘ loop) (continuous-∘ μ loop-continuous) c c) where
 
   S¹-ind : (x : S¹) → C x
   S¹-ind base = c
@@ -307,12 +307,17 @@ module Circle {u} (C : S¹ → Type u) (μ : continuous C) (c : C base)
   postulate S¹-β : (i : I) → S¹-ind (loop i) ↦ (∂ p) i
   {-# REWRITE S¹-β #-}
 
-  postulate S¹-ind-continuous : continuous S¹-ind
-
-open Circle
+postulate S¹-ind-continuous : ∀ {u v} {X : Type u} (C : X → S¹ → Type v) (μ : (x : X) → continuous (C x)) (c : (x : X) → C x base)
+                                (p : (x : X) → PathP (C x ∘ loop) (continuous-∘ (μ x) loop-continuous) (c x) (c x)) (f : X → S¹) →
+                                continuous C → continuous c → continuous p → continuous f → continuous (λ x → S¹-ind (C x) (μ x) (c x) (p x) (f x))
 
 S¹-rec : ∀ {u} (C : Type u) (c : C) → Path C c c → S¹ → C
 S¹-rec C c p = S¹-ind (λ _ → C) (continuous-const _ _ C) c p
 
-S¹-rec-continuous : ∀ {u} (C : Type u) (c : C) (p : Path C c c) → continuous (S¹-rec C c p)
-S¹-rec-continuous C c p = S¹-ind-continuous (λ _ → C) (continuous-const _ _ C) c p
+S¹-rec-continuous : ∀ {u v} {X : Type u} (C : X → Type v) (c : (x : X) → C x)
+                      (p : (x : X) → Path (C x) (c x) (c x)) (f : X → S¹) →
+                      continuous C → continuous c → continuous p → continuous f →
+                      continuous (λ x → S¹-rec (C x) (c x) (p x) (f x))
+S¹-rec-continuous C c p f α β γ δ =
+  S¹-ind-continuous (λ x _ → C x) (λ x → continuous-const _ _ (C x)) c p f
+   (continuous-∘ (continuous-const′ _ S¹) α) β γ δ
