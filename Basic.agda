@@ -264,7 +264,7 @@ I-rec-continuous = ∂-continuous
 
 ap : ∀ {u v} {A : Type u} {B : Type v} (f : A → B) → continuous f →
      {a b : A} → Path A a b → Path B (f a) (f b)
-ap f μ (weg φ η) = weg (f ∘ φ) (continuous-∘ μ η)
+ap f μ p = weg (f ∘ ∂ p) (continuous-∘ μ (∂-continuous p))
 
 _~_ : ∀ {u v} {A : Type u} {B : A → Type v} (f g : (x : A) → B x) → Type (u ⊔ v)
 _~_ {A = A} {B = B} f g = (x : A) → Path (B x) (f x) (g x)
