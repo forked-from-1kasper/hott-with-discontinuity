@@ -21,6 +21,14 @@ com : ∀ {u v w} {A : Type u} {B : Type v} {C : B → Type w} →
         ((b : B) → C b) → (g : A → B) → ((a : A) → C (g a))
 com f g x = f (g x)
 
+data ⊥ {u} : Prop u where
+
+data ⊤ {u} : Prop u where
+  truth : ⊤
+
+¬ : ∀ {u} → Prop u → Prop (lsuc u)
+¬ A = A → ⊥
+
 data _∧_ {u v} (A : Prop u) (B : Prop v) : Prop (u ⊔ v) where
   ∧-intro : A → B → A ∧ B
 
@@ -114,10 +122,12 @@ neg i₁ = i₀
 postulate continuous : ∀ {u v} {A : Type u} {B : A → Type v} → ((x : A) → B x) → Prop
 
 record CΠ {u v} (A : Type u) (B : A → Type v) : Type (u ⊔ v) where
-  constructor 〈_,_〉
+  constructor ⟨_,_⟩
   field
-    ap  : Π A B
-    con : continuous ap
+    inj  : Π A B
+    pres : continuous inj
+
+open CΠ
 
 continuous² : ∀ {u v w} {A : Type u} {B : A → Type v} {C : (a : A) → B a → Type w} →
                 ((a : A) → (b : B a) → C a b) → Prop u
@@ -141,23 +151,40 @@ postulate
 data PathP {u} (A : I → Type u) (μ : continuous A) : A 0 → A 1 → Type u where
   weg : (f : (i : I) → A i) → continuous f → PathP A μ (f 0) (f 1)
 
+module _ {u} {A : I → Type u} {μ : continuous A} {a : A 0} {b : A 1} where
+  ∂ : PathP A μ a b → (i : I) → A i
+  ∂ (weg φ _) = φ
+
+  ∂-continuous : (p : PathP A μ a b) → continuous (∂ p)
+  ∂-continuous (weg _ μ) = μ
+
 postulate
   PathP-continuous : ∀ {u v} {X : Type u} (A : X → I → Type v) (μ : (x : X) → continuous (A x)) (a : (x : X) → A x 0) (b : (x : X) → A x 1) →
                        continuous A → continuous a → continuous b → continuous (λ (x : X) → PathP (A x) (μ x) (a x) (b x))
   continuous-weg   : ∀ {u v} {X : Type u} (A : X → I → Type v) (μ : (x : X) → continuous (A x)) (f : (x : X) → (i : I) → A x i)
                        (η : (x : X) → continuous (f x)) → continuous f → continuous (λ x → weg {A = A x} {μ = μ x} (f x) (η x))
+  continuous-∂     : ∀ {u v} {X : Type u} (A : X → I → Type v) (μ : (x : X) → continuous (A x)) (a : (x : X) → A x 0) (b : (x : X) → A x 1)
+                       (p : (x : X) → PathP (A x) (μ x) (a x) (b x)) (f : X → I) → continuous a → continuous b →
+                       continuous p → continuous f → continuous (λ x → ∂ (p x) (f x))
+  continuous-inj   : ∀ {u v} (A : Type u) (B : A → Type v) → continuous (inj {A = A} {B = B})
+  continuous-⟨⟩    : ∀ {u v w} {X : Type u} (A : X → Type v) (B : (x : X) → A x → Type w)
+                       (f : (x : X) → (a : A x) → B x a) (μ : (x : X) → continuous (f x)) →
+                       continuous f → continuous (λ x → ⟨ f x , μ x ⟩)
 
-  Π-continuous     : ∀ {u v w} {X : Type u} (A : X → Type v) (B : (x : X) → A x → Type w) →
-                       continuous A → continuous B → continuous (λ (x : X) → Π (A x) (B x))
+postulate
+  Π-continuous : ∀ {u v w} {X : Type u} (A : X → Type v) (B : (x : X) → A x → Type w) →
+                   continuous A → continuous B → continuous (λ (x : X) → Π (A x) (B x))
 
-  Σ-continuous     : ∀ {u v w} {X : Type u} (A : X → Type v) (B : (x : X) → A x → Type w) →
-                       continuous A → continuous B → continuous (λ (x : X) → Σ (A x) (B x))
-  continuous-pr₁   : ∀ {u v} {A : Type u} (B : A → Type v) → continuous (pr₁ {B = B})
-  continuous-pr₂   : ∀ {u v} {A : Type u} (B : A → Type v) → continuous (pr₂ {B = B})
-  continuous-Σ-mk  : ∀ {u v w} (X : Type u) (A : X → Type v) (B : (x : X) → A x → Type w)
-                       (f : (x : X) → A x) (g : (x : X) → B x (f x)) → continuous f → continuous g →
-                       continuous {B = λ x → Σ (A x) (B x)} (λ x → (f x , g x))
+postulate
+  Σ-continuous    : ∀ {u v w} {X : Type u} (A : X → Type v) (B : (x : X) → A x → Type w) →
+                      continuous A → continuous B → continuous (λ (x : X) → Σ (A x) (B x))
+  continuous-pr₁  : ∀ {u v} {A : Type u} (B : A → Type v) → continuous (pr₁ {B = B})
+  continuous-pr₂  : ∀ {u v} {A : Type u} (B : A → Type v) → continuous (pr₂ {B = B})
+  continuous-Σ-mk : ∀ {u v w} (X : Type u) (A : X → Type v) (B : (x : X) → A x → Type w)
+                      (f : (x : X) → A x) (g : (x : X) → B x (f x)) → continuous f → continuous g →
+                      continuous {B = λ x → Σ (A x) (B x)} (λ x → (f x , g x))
 
+postulate
   +-continuous     : ∀ {u v w} {X : Type u} (A : X → Type v) (B : X → Type w) →
                        continuous A → continuous B → continuous (λ x → A x + B x)
   continuous-inl   : ∀ {u v w} {X : Type u} (A : X → Type v) (B : X → Type w) → (f : (x : X) → A x) →
@@ -193,22 +220,6 @@ swap w = (pr₂ w , pr₁ w)
 
 swap-continuous : ∀ {u v} (A : Type u) (B : Type v) → continuous (swap {A = A} {B = B})
 swap-continuous A B = continuous-×-mk (A × B) (λ _ → B) (λ _ → A) (continuous-pr₂ (λ _ → B)) (continuous-pr₁ (λ _ → B))
-
-module Application {u} {A : I → Type u} {μ : continuous A} {a : A 0} {b : A 1} where
-  ∂ : PathP A μ a b → (i : I) → A i
-  ∂ (weg φ _) i = φ i
-
-  ∂-continuous : (p : PathP A μ a b) → continuous (∂ p)
-  ∂-continuous (weg _ μ) = μ
-
-  postulate ∂-0 : (p : PathP A μ a b) → (∂ p) 0 ↦ a
-  postulate ∂-1 : (p : PathP A μ a b) → (∂ p) 1 ↦ b
-  {-# REWRITE ∂-0 ∂-1 #-}
-
-  nat : (w : PathP A μ a b × I) → A (pr₂ w)
-  nat w = ∂ (pr₁ w) (pr₂ w)
-
-open Application
 
 Path : ∀ {u} (A : Type u) → A → A → Type u
 Path A = PathP (λ _ → A) (continuous-const _ _ A)
