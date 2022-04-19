@@ -67,17 +67,13 @@ instance
 Π : ∀ {u v} (A : Type u) (B : A → Type v) → Type (u ⊔ v)
 Π A B = (x : A) → B x
 
-data Σ {u v} (A : Type u) (B : A → Type v) : Type (u ⊔ v) where
-  _,_ : (a : A) → B a → Σ A B
+record Σ {u v} (A : Type u) (B : A → Type v) : Type (u ⊔ v) where
+  constructor _,_
+  field
+    pr₁ : A
+    pr₂ : B pr₁
 
-pr₁ : ∀ {u v} {A : Type u} {B : A → Type v} → Σ A B → A
-pr₁ (a , b) = a
-
-pr₂ : ∀ {u v} {A : Type u} {B : A → Type v} (w : Σ A B) → B (pr₁ w)
-pr₂ (a , b) = b
-
-postulate Σ-η : ∀ {u v} (A : Type u) (B : A → Type v) (w : Σ A B) → (pr₁ w , pr₂ w) ↦ w
-{-# REWRITE Σ-η #-}
+open Σ
 
 _×_ : ∀ {u v} → Type u → Type v → Type (u ⊔ v)
 A × B = Σ A (λ _ → B)
@@ -116,6 +112,12 @@ neg i₁ = i₀
 □ (succ n) = □ n × I
 
 postulate continuous : ∀ {u v} {A : Type u} {B : A → Type v} → ((x : A) → B x) → Prop
+
+record CΠ {u v} (A : Type u) (B : A → Type v) : Type (u ⊔ v) where
+  constructor 〈_,_〉
+  field
+    ap  : Π A B
+    con : continuous ap
 
 continuous² : ∀ {u v w} {A : Type u} {B : A → Type v} {C : (a : A) → B a → Type w} →
                 ((a : A) → (b : B a) → C a b) → Prop u
