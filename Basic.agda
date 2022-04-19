@@ -83,6 +83,10 @@ record Σ {u v} (A : Type u) (B : A → Type v) : Type (u ⊔ v) where
 
 open Σ
 
+Σ-ind : ∀ {u v w} {A : Type u} {B : A → Type v} (C : Σ A B → Type w) →
+          ((a : A) → (b : B a) → C (a , b)) → (w : Σ A B) → C w
+Σ-ind C d (a , b) = d a b
+
 _×_ : ∀ {u v} → Type u → Type v → Type (u ⊔ v)
 A × B = Σ A (λ _ → B)
 
@@ -119,6 +123,7 @@ neg i₁ = i₀
 □ zero     = I
 □ (succ n) = □ n × I
 
+-- continuous function
 postulate C : ∀ {u v} {A : Type u} {B : A → Type v} → ((x : A) → B x) → Prop
 
 record CΠ {u v} (A : Type u) (B : A → Type v) : Type (u ⊔ v) where
@@ -129,6 +134,7 @@ record CΠ {u v} (A : Type u) (B : A → Type v) : Type (u ⊔ v) where
 
 open CΠ
 
+-- do not consufe with smooth functions
 C¹ : ∀ {u v} {A : Type u} {B : A → Type v} → ((x : A) → B x) → Prop
 C¹ = C
 
@@ -188,18 +194,18 @@ postulate
 postulate
   Π-C : ∀ {u v w} {X : Type u} (A : X → Type v) (B : (x : X) → A x → Type w) →
           C A → C B → C (λ (x : X) → Π (A x) (B x))
-  C-Π-mk : ∀ {u v w} (X : Type u) (A : X → Type v) (B : (x : X) → A x → Type w)
-             (f : (x : X) → A x) (g : (x : X) → (a : A x) → B x a) → C f → C g →
-             C (λ x → λ (a : A x) → g x (f x))
 
 postulate
-  Σ-C    : ∀ {u v w} {X : Type u} (A : X → Type v) (B : (x : X) → A x → Type w) →
-             C A → C B → C (λ (x : X) → Σ (A x) (B x))
-  C-pr₁  : ∀ {u v} {A : Type u} (B : A → Type v) → C (pr₁ {B = B})
-  C-pr₂  : ∀ {u v} {A : Type u} (B : A → Type v) → C (pr₂ {B = B})
-  C-Σ-mk : ∀ {u v w} (X : Type u) (A : X → Type v) (B : (x : X) → A x → Type w)
-             (f : (x : X) → A x) (g : (x : X) → B x (f x)) → C f → C g →
-             C {B = λ x → Σ (A x) (B x)} (λ x → (f x , g x))
+  Σ-C     : ∀ {u v w} {X : Type u} (A : X → Type v) (B : (x : X) → A x → Type w) →
+              C A → C B → C (λ (x : X) → Σ (A x) (B x))
+  C-pr₁   : ∀ {u v} {A : Type u} (B : A → Type v) → C (pr₁ {B = B})
+  C-pr₂   : ∀ {u v} {A : Type u} (B : A → Type v) → C (pr₂ {B = B})
+  C-Σ-mk  : ∀ {u v w} (X : Type u) (A : X → Type v) (B : (x : X) → A x → Type w)
+              (f : (x : X) → A x) (g : (x : X) → B x (f x)) → C f → C g →
+              C {B = λ x → Σ (A x) (B x)} (λ x → (f x , g x))
+  C-Σ-ind : ∀ {u v w k} {X : Type u} (A : X → Type v) (B : (x : X) → A x → Type w)
+              (P : (x : X) → Σ (A x) (B x) → Type k) (f : (x : X) → (a : A x) → (b : B x a) → P x (a , b))
+              (g : (x : X) → Σ (A x) (B x)) → C A → C B → C P → C³ f → C g → C (λ x → Σ-ind (P x) (f x) (g x))
 
 postulate
   +-C     : ∀ {u v w} {X : Type u} (A : X → Type v) (B : X → Type w) →
