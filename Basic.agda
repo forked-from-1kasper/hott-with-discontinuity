@@ -244,8 +244,8 @@ coe-continuous A μ i = continuous-coe (λ _ → A) (λ _ → μ) (λ _ → i) (
 
 _⁻¹ : ∀ {u} {A : I → Type u} {μ : continuous A} {a : A 0} {b : A 1} →
         PathP A μ a b → PathP (A ∘ neg) (continuous-∘ μ continuous-neg) b a
-_⁻¹ {A = A} (weg φ μ) = weg (com {A = I} {B = I} {C = A} φ neg)
-                            (continuous-com φ neg μ continuous-neg)
+_⁻¹ {A = A} p = weg (com {A = I} {B = I} {C = A} (∂ p) neg)
+                    (continuous-com (∂ p) neg (∂-continuous p) continuous-neg)
 
 transport : ∀ {u} {A B : Type u} → Path (Type u) A B → A → B
 transport p = coe (∂ p) (∂-continuous p) 1
