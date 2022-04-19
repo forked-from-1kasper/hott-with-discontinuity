@@ -92,6 +92,11 @@ data _+_ {u v} (A : Type u) (B : Type v) : Type (u ⊔ v) where
   inl : A → A + B
   inr : B → A + B
 
++-ind : ∀ {u v w} {A : Type u} {B : Type v} (C : A + B → Type w) →
+          ((a : A) → C (inl a)) → ((b : B) → C (inr b)) → (x : A + B) → C x
++-ind C f g (inl a) = f a
++-ind C f g (inr b) = g b
+
 data I : Set where
   i₀ : I
   i₁ : I
@@ -111,6 +116,10 @@ neg i₁ = i₀
 □ (succ n) = □ n × I
 
 postulate continuous : ∀ {u v} {A : Type u} {B : A → Type v} → ((x : A) → B x) → Prop
+
+continuous² : ∀ {u v w} {A : Type u} {B : A → Type v} {C : (a : A) → B a → Type w} →
+                ((a : A) → (b : B a) → C a b) → Prop u
+continuous² {A = A} φ = continuous φ ∧ ((a : A) → continuous (φ a))
 
 postulate
   continuous-neg   : continuous neg
@@ -153,6 +162,10 @@ postulate
                        continuous f → continuous (λ x → inl {A = A x} {B = B x} (f x))
   continuous-inr   : ∀ {u v w} {X : Type u} (A : X → Type v) (B : X → Type w) → (g : (x : X) → B x) →
                        continuous g → continuous (λ x → inr {A = A x} {B = B x} (g x))
+  continuous-+-ind : ∀ {u v w k} (X : Type u) {A : X → Type v} {B : X → Type w} (C : (x : X) → A x + B x → Type k) →
+                       (f : (x : X) → (a : A x) → C x (inl a)) → (g : (x : X) → (b : B x) → C x (inr b)) →
+                       (h : (x : X) → A x + B x) → continuous C → continuous² f → continuous² g → continuous h →
+                       continuous (λ x → +-ind (C x) (f x) (g x) (h x))
 
 continuous-idfun : ∀ {u} (A : Type u) → continuous (idfun A)
 continuous-idfun A = ∧-right (continuous-def A (λ _ → A) (idfun A)) (λ (n : ℕ) (g : □ n → A) (μ : continuous g) → μ)
