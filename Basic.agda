@@ -143,7 +143,8 @@ postulate
 
 postulate
   coe            : ∀ {u} (A : I → Type u) → continuous A → (i : I) → A 0 → A i
-  coe-continuous : ∀ {u} (A : I → Type u) (μ : continuous A) (i : I) → continuous (coe A μ i)
+  continuous-coe : ∀ {u v} {X : Type u} (A : X → I → Type v) (μ : (x : X) → continuous (A x)) (f : X → I) (g : (x : X) → A x 0) →
+                     continuous A → continuous f → continuous g → continuous (λ x → coe (A x) (μ x) (f x) (g x))
   coe-const      : ∀ {u} (A : Type u) (i : I) → coe (λ _ → A) (continuous-const _ _ A) i ↦ idfun A
   coe-idfun      : ∀ {u} (A : I → Type u) (μ : continuous A) → coe A μ 0 ↦ idfun (A 0)
 {-# REWRITE coe-const coe-idfun #-}
@@ -157,6 +158,10 @@ module _ {u} {A : I → Type u} {μ : continuous A} {a : A 0} {b : A 1} where
 
   ∂-continuous : (p : PathP A μ a b) → continuous (∂ p)
   ∂-continuous (weg _ μ) = μ
+
+  postulate ∂-0 : (p : PathP A μ a b) → (∂ p) 0 ↦ a
+  postulate ∂-1 : (p : PathP A μ a b) → (∂ p) 1 ↦ b
+  {-# REWRITE ∂-0 ∂-1 #-}
 
 postulate
   PathP-continuous : ∀ {u v} {X : Type u} (A : X → I → Type v) (μ : (x : X) → continuous (A x)) (a : (x : X) → A x 0) (b : (x : X) → A x 1) →
@@ -233,16 +238,20 @@ Path-continuous {A = A} {B = B} {f = f} {g = g} α β γ =
 idp : ∀ {u} {A : Type u} (a : A) → Path A a a
 idp {A = A} a = weg (λ _ → a) (continuous-const A I a)
 
+coe-continuous : ∀ {u} (A : I → Type u) (μ : continuous A) (i : I) → continuous (coe A μ i)
+coe-continuous A μ i = continuous-coe (λ _ → A) (λ _ → μ) (λ _ → i) (idfun (A 0))
+  (continuous-const _ _ A) (continuous-const _ _ i) (continuous-idfun (A 0))
+
 _⁻¹ : ∀ {u} {A : I → Type u} {μ : continuous A} {a : A 0} {b : A 1} →
         PathP A μ a b → PathP (A ∘ neg) (continuous-∘ μ continuous-neg) b a
 _⁻¹ {A = A} (weg φ μ) = weg (com {A = I} {B = I} {C = A} φ neg)
                             (continuous-com φ neg μ continuous-neg)
 
 transport : ∀ {u} {A B : Type u} → Path (Type u) A B → A → B
-transport (weg φ μ) = coe φ μ 1
+transport p = coe (∂ p) (∂-continuous p) 1
 
 transport-continuous : ∀ {u} {A B : Type u} (p : Path (Type u) A B) → continuous (transport p)
-transport-continuous (weg φ μ) = coe-continuous φ μ 1
+transport-continuous {A = A} p = coe-continuous (∂ p) (∂-continuous p) 1
 
 seg : Path I 0 1
 seg = weg (idfun I) (continuous-idfun I)
