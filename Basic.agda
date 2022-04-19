@@ -181,15 +181,15 @@ postulate
   PathP-C : ∀ {u v} {X : Type u} (A : X → I → Type v) (μ : (x : X) → C (A x)) (a : (x : X) → A x 0) (b : (x : X) → A x 1) →
               C A → C a → C b → C (λ (x : X) → PathP (A x) (μ x) (a x) (b x))
   C-weg   : ∀ {u v} {X : Type u} (A : X → I → Type v) (μ : (x : X) → C (A x)) (f : (x : X) → (i : I) → A x i)
-              (η : (x : X) → C (f x)) → C f → C (λ x → weg {A = A x} {μ = μ x} (f x) (η x))
+              (η : (x : X) → C (f x)) → C A → C f → C (λ x → weg {A = A x} {μ = μ x} (f x) (η x))
   C-∂     : ∀ {u v} {X : Type u} (A : X → I → Type v) (μ : (x : X) → C (A x)) (a : (x : X) → A x 0) (b : (x : X) → A x 1)
-              (p : (x : X) → PathP (A x) (μ x) (a x) (b x)) (f : X → I) → C a → C b →
-              C p → C f → C (λ x → ∂ (p x) (f x))
+              (p : (x : X) → PathP (A x) (μ x) (a x) (b x)) (f : X → I) →
+              C A → C a → C b → C p → C f → C (λ x → ∂ (p x) (f x))
 
   C-inj   : ∀ {u v} (A : Type u) (B : A → Type v) → C (inj {A = A} {B = B})
   C-⟨⟩    : ∀ {u v w} {X : Type u} (A : X → Type v) (B : (x : X) → A x → Type w)
               (f : (x : X) → (a : A x) → B x a) (μ : (x : X) → C (f x)) →
-              C f → C (λ x → ⟨ f x , μ x ⟩)
+              C A → C B → C f → C (λ x → ⟨ f x , μ x ⟩)
 
 postulate
   Π-C : ∀ {u v w} {X : Type u} (A : X → Type v) (B : (x : X) → A x → Type w) →
@@ -216,7 +216,7 @@ postulate
               C g → C (λ x → inr {A = A x} {B = B x} (g x))
   C-+-ind : ∀ {u v w k} (X : Type u) {A : X → Type v} {B : X → Type w} (P : (x : X) → A x + B x → Type k) →
               (f : (x : X) → (a : A x) → P x (inl a)) → (g : (x : X) → (b : B x) → P x (inr b)) →
-              (h : (x : X) → A x + B x) → C P → C² f → C² g → C h →
+              (h : (x : X) → A x + B x) → C A → C B → C P → C² f → C² g → C h →
               C (λ x → +-ind (P x) (f x) (g x) (h x))
 
 C-idfun : ∀ {u} (A : Type u) → C (idfun A)
@@ -292,6 +292,10 @@ ap f μ p = weg (f ∘ ∂ p) (C-∘ μ (∂-C p))
 
 _~_ : ∀ {u v} {A : Type u} {B : A → Type v} (f g : (x : A) → B x) → Type (u ⊔ v)
 _~_ {A = A} {B = B} f g = CΠ A (λ x → Path (B x) (f x) (g x))
+
+--funext : ∀ {u v} {A : Type u} {B : A → Type v} (f g : Π A B) →
+--           C f → C g → f ~ g → Path (Π A B) f g
+--funext f g μ η p = weg (λ i x → ∂ (inj p x) i) _
 
 hprop : ∀ {u} (A : Type u) → Type u
 hprop A = (a b : A) → Path A a b
