@@ -297,14 +297,23 @@ _~_ {A = A} {B = B} f g = CΠ A (λ x → Path (B x) (f x) (g x))
 --           C f → C g → f ~ g → Path (Π A B) f g
 --funext f g μ η p = weg (λ i x → ∂ (inj p x) i) _
 
+data Id {u} (A : Type u) : A → A → Type u where
+  refl : (a : A) → Id A a a
+
 hprop : ∀ {u} (A : Type u) → Type u
 hprop A = (a b : A) → Path A a b
 
 hset : ∀ {u} (A : Type u) → Type u
 hset A = (a b : A) → hprop (Path A a b)
 
-data Id {u} (A : Type u) : A → A → Type u where
-  refl : (a : A) → Id A a a
+hgroupoid : ∀ {u} (A : Type u) → Type u
+hgroupoid A = (a b : A) → hset (Path A a b)
+
+prop : ∀ {u} (A : Type u) → Type u
+prop A = (a b : A) → Id A a b
+
+set : ∀ {u} (A : Type u) → Type u
+set A = (a b : A) → prop (Path A a b)
 
 Id⇒Path : ∀ {u} {A : Type u} {a b : A} → Id A a b → Path A a b
 Id⇒Path (refl a) = idp a
