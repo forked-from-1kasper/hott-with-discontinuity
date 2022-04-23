@@ -191,8 +191,25 @@ ap : ∀ {u v} {A : Type u} {B : Type v} (f : A → B) → C f →
      {a b : A} → Path A a b → Path B (f a) (f b)
 ap f μ p = weg (f ∘ ∂ p) (C-∘ μ (∂-C p))
 
+infix 10 _~_
+
 _~_ : ∀ {u v} {A : Type u} {B : A → Type v} (f g : (x : A) → B x) → Type (u ⊔ v)
 _~_ {A = A} {B = B} f g = CΠ A (λ x → Path (B x) (f x) (g x))
+
+linv : ∀ {u v} {A : Type u} {B : Type v} → (A → B) → Type (u ⊔ v)
+linv {A = A} {B = B} f = Σ (B → A) (λ g → g ∘ f ~ idfun A)
+
+rinv : ∀ {u v} {A : Type u} {B : Type v} → (A → B) → Type (u ⊔ v)
+rinv {A = A} {B = B} f = Σ (B → A) (λ g → f ∘ g ~ idfun B)
+
+qinv : ∀ {u v} {A : Type u} {B : Type v} → (A → B) → Type (u ⊔ v)
+qinv {A = A} {B = B} f = Σ (B → A) (λ g → g ∘ f ~ idfun A × f ∘ g ~ idfun B)
+
+biinv : ∀ {u v} {A : Type u} {B : Type v} → (A → B) → Type (u ⊔ v)
+biinv f = linv f × rinv f
+
+_≃_ : ∀ {u v} → Type u → Type v → Type (u ⊔ v)
+A ≃ B = Σ (A → B) biinv
 
 --funext : ∀ {u v} {A : Type u} {B : A → Type v} {f g : Π A B} →
 --           C f → C g → f ~ g → Path (Π A B) f g
@@ -200,6 +217,17 @@ _~_ {A = A} {B = B} f g = CΠ A (λ x → Path (B x) (f x) (g x))
 
 data Id {u} (A : Type u) : A → A → Type u where
   refl : (a : A) → Id A a a
+
+idJ : ∀ {u v} {A : Type u} (B : (a b : A) → Id A a b → Type v) →
+        ((a : A) → B a a (refl a)) → (a b : A) → (p : Id A a b) → B a b p
+idJ B d _ _ (refl a) = d a
+
+postulate
+  Id-C   : ∀ {u v} {A : Type u} {B : A → Type v} {f g : (x : A) → B x} → C B → C f → C g → C (λ x → Id (B x) (f x) (g x))
+  C-refl : ∀ {u v} {A : Type u} {B : A → Type v} (f : (x : A) → B x) → C B → C f → C (λ x → refl (f x))
+  C-idJ  : ∀ {u v w} {X : Type u} (A : X → Type v) (B : (x : X) → (a b : A x) → Id (A x) a b → Type w) →
+             (d : (x : X) → (a : A x) → B x a a (refl a)) → (a b : (x : X) → A x) → (p : (x : X) → Id (A x) (a x) (b x)) →
+             C A → C B → C² d → C a → C b → C p → C (λ x → idJ {A = A x} (B x) (d x) (a x) (b x) (p x))
 
 hprop : ∀ {u} (A : Type u) → Type u
 hprop A = (a b : A) → Path A a b
@@ -216,5 +244,16 @@ prop A = (a b : A) → Id A a b
 set : ∀ {u} (A : Type u) → Type u
 set A = (a b : A) → prop (Path A a b)
 
-Id⇒Path : ∀ {u} {A : Type u} {a b : A} → Id A a b → Path A a b
-Id⇒Path (refl a) = idp a
+Id→Path : ∀ {u} {A : Type u} {a b : A} → Id A a b → Path A a b
+Id→Path (refl a) = idp a
+
+infix 10 _≡_
+
+_≡_ : ∀ {u v} {A : Type u} {B : A → Type v} (f g : (x : A) → B x) → Type (u ⊔ v)
+_≡_ {A = A} {B = B} f g = (x : A) → Id (B x) (f x) (g x)
+
+bijective : ∀ {u v} {A : Type u} {B : Type v} → (A → B) → Type (u ⊔ v)
+bijective {A = A} {B = B} f = Σ (B → A) (λ g → g ∘ f ≡ idfun A × f ∘ g ≡ idfun B)
+
+_≅_ : ∀ {u v} → Type u → Type v → Type (u ⊔ v)
+A ≅ B = Σ (A → B) bijective

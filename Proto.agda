@@ -67,6 +67,8 @@ open Σ
           ((a : A) → (b : B a) → C (a , b)) → (w : Σ A B) → C w
 Σ-ind C d (a , b) = d a b
 
+infix 9 _×_
+
 _×_ : ∀ {u v} → Type u → Type v → Type (u ⊔ v)
 A × B = Σ A (λ _ → B)
 
