@@ -245,7 +245,7 @@ set : ∀ {u} (A : Type u) → Type u
 set A = (a b : A) → prop (Path A a b)
 
 Id→Path : ∀ {u} {A : Type u} {a b : A} → Id A a b → Path A a b
-Id→Path (refl a) = idp a
+Id→Path {A = A} {a = a} {b = b} = idJ (λ a b _ → Path A a b) idp a b
 
 infix 10 _≡_
 
