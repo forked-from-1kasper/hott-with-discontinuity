@@ -229,20 +229,30 @@ postulate
              (d : (x : X) → (a : A x) → B x a a (refl a)) → (a b : (x : X) → A x) → (p : (x : X) → Id (A x) (a x) (b x)) →
              C A → C B → C² d → C a → C b → C p → C (λ x → idJ {A = A x} (B x) (d x) (a x) (b x) (p x))
 
+Pathⁿ : ∀ {u} (A : Type u) → ℕ → Type u
+Pathⁿ A zero = A
+Pathⁿ A (succ n) = Σ² (Pathⁿ A n) (Path (Pathⁿ A n))
+
 hprop : ∀ {u} (A : Type u) → Type u
-hprop A = (a b : A) → Path A a b
-
-hset : ∀ {u} (A : Type u) → Type u
-hset A = (a b : A) → hprop (Path A a b)
-
-hgroupoid : ∀ {u} (A : Type u) → Type u
-hgroupoid A = (a b : A) → hset (Path A a b)
+hprop A = CΠ (A × A) (λ w → Path A (pr₁ w) (pr₂ w))
 
 prop : ∀ {u} (A : Type u) → Type u
-prop A = (a b : A) → Id A a b
+prop A = CΠ (A × A) (λ w → Id A (pr₁ w) (pr₂ w))
+
+truncated : ∀ {u} (A : Type u) → ℕ → Type u
+truncated A n = hprop (Pathⁿ A n)
+
+strict-truncated : ∀ {u} (A : Type u) → ℕ → Type u
+strict-truncated A n = prop (Pathⁿ A n)
+
+hset : ∀ {u} (A : Type u) → Type u
+hset A = truncated A 1
 
 set : ∀ {u} (A : Type u) → Type u
-set A = (a b : A) → prop (Path A a b)
+set A = strict-truncated A 1
+
+hgroupoid : ∀ {u} (A : Type u) → Type u
+hgroupoid A = truncated A 2
 
 Id→Path : ∀ {u} {A : Type u} {a b : A} → Id A a b → Path A a b
 Id→Path {A = A} {a = a} {b = b} = idJ (λ a b _ → Path A a b) idp a b
