@@ -89,3 +89,10 @@ data _+_ {u v} (A : Type u) (B : Type v) : Type (u ⊔ v) where
           ((a : A) → C (inl a)) → ((b : B) → C (inr b)) → (x : A + B) → C x
 +-ind C f g (inl a) = f a
 +-ind C f g (inr b) = g b
+
+data Id {u} (A : Type u) : A → A → Type u where
+  refl : (a : A) → Id A a a
+
+idJ : ∀ {u v} {A : Type u} (B : (a b : A) → Id A a b → Type v) →
+        ((a : A) → B a a (refl a)) → (a b : A) → (p : Id A a b) → B a b p
+idJ B d _ _ (refl a) = d a
