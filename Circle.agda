@@ -11,8 +11,4 @@ data S¹ : Set where
   base : S¹
 
 postulate
-  loop   : C I (λ _ → S¹)
-  loop-0 : ap loop 0 ↦ base
-  loop-1 : ap loop 1 ↦ base
-
-  {-# REWRITE loop-0 loop-1 #-}
+  loop   : Path S¹ base base

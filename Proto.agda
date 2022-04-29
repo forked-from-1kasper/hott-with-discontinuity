@@ -69,11 +69,11 @@ open Σ
 
 infix 9 _×_
 
-Σ² : ∀ {u v} (A : Type u) → (A → A → Type v) → Type (u ⊔ v)
-Σ² A B = Σ A (λ x → Σ A (B x))
-
 _×_ : ∀ {u v} → Type u → Type v → Type (u ⊔ v)
 A × B = Σ A (λ _ → B)
+
+Σ² : ∀ {u v} (A : Type u) → (A → A → Type v) → Type (u ⊔ v)
+Σ² A B = Σ (A × A) (λ w → B (pr₁ w) (pr₂ w))
 
 curry : ∀ {u v w} {A : Type u} {B : Type v} {C : Type w} → (A × B → C) → (A → B → C)
 curry f a b = f (a , b)
