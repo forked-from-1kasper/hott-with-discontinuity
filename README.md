@@ -15,3 +15,4 @@ Possibly, this may give another solution to “the problem of the two circle
 3. Moreover, previous contruction should have nice generalization for ∞-Type. It should be, in some sense,
 a reverse of [“shape” ʃ](https://homotopytypetheory.org/2015/09/25/realcohesion/) from real-cohesive HoTT.
 4. Let R(A) be HIT (for Path-equaility) with following constructors: base : R(A), loop : A → base = base. For each 1-Type we probably can define some discontinuous f : ∥A∥₀ → U such that there should be a nice equivalence: A ≃ Σ (x : ∥A∥₀), R(f(x)). Knowing that fundamental group of R(A) is a free group on A allows us to calculate fundamental group of any 1-Type.
+5. Homotopical reals becomes distinguishable from a singleton inside the theory, which makes R a more interesting object to study.
