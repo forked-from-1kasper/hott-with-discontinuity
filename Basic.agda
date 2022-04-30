@@ -82,8 +82,9 @@ record functorial {u v} {A : Type u} {B : A → Type v} (g : Map A B) : Set (u �
 
 module _ {u v} {A : Type u} {B : A → Type v} where
   postulate
-    Cλ     : (g : Map A B) → functorial {B = B} g → C A B
-    C-elim : C A B → Map A B
-    C-coh  : (g : C A B) → functorial (C-elim g)
-    C-η    : (g : C A B) → Cλ (C-elim g) (C-coh g) ↦ g
+    Cλ      : (g : Map A B) → functorial {B = B} g → C A B
+    C-elim  : C A B → Map A B
+    C-coh   : (g : C A B) → functorial (C-elim g)
+    C-η     : (g : C A B) → Cλ (C-elim g) (C-coh g) ↦ g
+    ap-elim : (g : C A B) → (x : A) → Id (B x) (ap g x) (C-elim g 0 x)
   {-# REWRITE C-η #-}
