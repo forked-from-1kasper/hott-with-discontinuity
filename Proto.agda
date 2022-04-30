@@ -11,9 +11,6 @@ postulate _↦_ : ∀ {u} {A : Type u} → A → A → Type u
 idfun : ∀ {u} (A : Type u) → A → A
 idfun A a = a
 
-const : ∀ {u v} (A : Type u) (B : Type v) → A → B → A
-const A B a b = a
-
 _∘_ : ∀ {u v w} {A : Type u} {B : Type v} {C : Type w} → (B → C) → (A → B) → (A → C)
 (f ∘ g) x = f (g x)
 
