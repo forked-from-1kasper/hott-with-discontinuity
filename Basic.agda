@@ -144,3 +144,38 @@ module _ {u v} {A : Type u} {B : C A (λ _ → Type v)} where
   postulate
     apd-def : (g : C A (ap B)) (a b : A) (p : Path A a b) → apd B g p ↦ pr₂ (C-elim g 1 ((a , b) , p))
   {-# REWRITE apd-def #-}
+
+hprop : ∀ {u} (A : Type u) → Type u
+hprop A = C (A × A) (λ w → Path A (pr₁ w) (pr₂ w))
+
+prop : ∀ {u} (A : Type u) → Type u
+prop A = C (A × A) (λ w → Id A (pr₁ w) (pr₂ w))
+
+truncated : ∀ {u} (A : Type u) → ℕ → Type u
+truncated A n = hprop (◻ A n)
+
+strict-truncated : ∀ {u} (A : Type u) → ℕ → Type u
+strict-truncated A n = prop (◻ A n)
+
+hset : ∀ {u} (A : Type u) → Type u
+hset A = truncated A 1
+
+set : ∀ {u} (A : Type u) → Type u
+set A = strict-truncated A 1
+
+hgroupoid : ∀ {u} (A : Type u) → Type u
+hgroupoid A = truncated A 2
+
+Id→Path : ∀ {u} {A : Type u} {a b : A} → Id A a b → Path A a b
+Id→Path {A = A} {a = a} {b = b} = idJ (λ a b _ → Path A a b) idp a b
+
+infix 10 _≡_
+
+_≡_ : ∀ {u v} {A : Type u} {B : A → Type v} (f g : (x : A) → B x) → Type (u ⊔ v)
+_≡_ {A = A} {B = B} f g = (x : A) → Id (B x) (f x) (g x)
+
+bijective : ∀ {u v} {A : Type u} {B : Type v} → (A → B) → Type (u ⊔ v)
+bijective {A = A} {B = B} f = Σ (B → A) (λ g → g ∘ f ≡ idfun A × f ∘ g ≡ idfun B)
+
+_≅_ : ∀ {u v} → Type u → Type v → Type (u ⊔ v)
+A ≅ B = Σ (A → B) bijective
