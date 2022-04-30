@@ -7,6 +7,9 @@ open import Logic
 open Σ
 
 postulate
+  -- type of continuous functions
+  -- they carry additional structure
+  -- which determines their action on the paths
   C     : ∀ {u v} (A : Type u) → (A → Type v) → Type (u ⊔ v)
   id    : ∀ {u} (A : Type u) → C A (λ _ → A)
   const : ∀ {u v} (A : Type u) (B : Type v) → C A (λ _ → C B (λ _ → A))
@@ -27,19 +30,20 @@ postulate
   {-# REWRITE id-ap const-ap #-}
 
 postulate
+  -- type of paths itself defines continuous function in path space
   P : ∀ {u} → C (Type u) (λ A → C A (λ _ → C A (λ _ → Type u)))
 
 Path : ∀ {u} (A : Type u) → A → A → Type u
 Path A a b = ap (ap (ap P A) a) b
 
 postulate
-  con  : ∀ {u} (A : Type u) → C¹ A (λ a → Path A a a)
-  hrev : ∀ {u} {A : Type u} → C² A (λ a b → C (Path A a b) (λ _ → Path A b a))
-  hcom : ∀ {u} {A : Type u} → C³ A (λ a b c → C (Path A a b) (λ _ → C (Path A b c) (λ _ → Path A a c)))
+  hcon : ∀ {u} (A : Type u) → C¹ A (λ a → Path A a a) -- constant path
+  hrev : ∀ {u} {A : Type u} → C² A (λ a b → C (Path A a b) (λ _ → Path A b a)) -- path reversal
+  hcom : ∀ {u} {A : Type u} → C³ A (λ a b c → C (Path A a b) (λ _ → C (Path A b c) (λ _ → Path A a c))) -- path composition
   coe  : ∀ {u v} {A : Type u} (B : C A (λ _ → Type v)) {a b : A} → Path A a b → C (ap B a) (λ _ → ap B b)
 
 idp : ∀ {u} {A : Type u} (a : A) → Path A a a
-idp {A = A} = ap (con A)
+idp {A = A} = ap (hcon A)
 
 _⁻¹ : ∀ {u} {A : Type u} {a b : A} → Path A a b → Path A b a
 _⁻¹ {a = a} {b = b} = ap (ap (ap hrev a) b)
@@ -50,16 +54,20 @@ _⬝_ : ∀ {u} {A : Type u} {a b c : A} → Path A a b → Path A b c → Path 
 _⬝_ {a = a} {b = b} {c = c} p q = ap (ap (ap (ap (ap hcom a) b) c) p) q
 
 postulate
-  rev-con : ∀ {u} (A : Type u) → C A (λ a → Path (Path A a a) (idp a ⁻¹)      (idp a))
-  com-con : ∀ {u} (A : Type u) → C A (λ a → Path (Path A a a) (idp a ⬝ idp a) (idp a))
+  -- classically reversal of constant path (as composition of these) is equal to constant path
+  -- not only up to homotopy, but pointwise; so we expect the same thing here,
+  -- but not for “p ⬝ idp b” or “idp a ⬝ p” or “p ⬝ (q ⬝ r)” and “(p ⬝ q) ⬝ r”
+  rev-con : ∀ {u} (A : Type u) (a : A) → ap (ap (ap hrev a) a) (idp a) ↦ idp a
+  com-con : ∀ {u} (A : Type u) (a : A) → ap (ap (ap (ap (ap hcom a) a) a) (idp a)) (idp a) ↦ idp a
 
   coe-idp : ∀ {u v} {A : Type u} (B : C A (λ _ → Type v)) (a : A) → coe B (idp a) ↦ id (ap B a)
   coe-con : ∀ {u v} (A : Type u) (B : Type v) (a b : A) (p : Path A a b) → coe {A = A} (ap (const _ _) B) p ↦ id B
   coe-com : ∀ {u v} {A : Type u} (B : C A (λ _ → Type v)) {a b c : A} (p : Path A a b) (q : Path A b c)
               (x : ap B a) → ap (coe B q) (ap (coe B p) x) ↦ ap (coe B (p ⬝ q)) x
-  {-# REWRITE coe-idp coe-con coe-com #-}
+  {-# REWRITE rev-con com-con coe-idp coe-con coe-com #-}
 
-PathP : ∀ {u v} {A : Type u} (B : C A (λ _ → Type v)) {a b : A} → Path A a b → ap B a → ap B b → Type v
+PathP : ∀ {u v} {A : Type u} (B : C A (λ _ → Type v)) {a b : A} →
+          Path A a b → ap B a → ap B b → Type v
 PathP B {b = b} p x y = Path (ap B b) (ap (coe B p) x) y
 
 postulate
@@ -74,6 +82,7 @@ com : ∀ {u v} {A : Type u} (B : C A (λ _ → Type v)) {a b c : A} (p : Path A
         {x : ap B a} {y : ap B b} {z : ap B c} → PathP B p x y → PathP B q y z → PathP B (p ⬝ q) x z
 com B p q α β = cong (coe B q) α ⬝ β
 
+-- type of hypercubes in A
 ◻ : ∀ {u} (A : Type u) → ℕ → Type u
 ◻ A zero     = A
 ◻ A (succ n) = Σ² (◻ A n) (Path (◻ A n))
@@ -83,6 +92,7 @@ com B p q α β = cong (coe B q) α ⬝ β
 
 module _ {u v} {A : Type u} (B : C A (λ _ → Type v)) where
   postulate
+    -- type of dependent hypercubes in B over A
     ◼      : (n : ℕ) → C (◻ A n) (λ _ → Type v)
     ◼-zero : ◼ zero ↦ B
 
