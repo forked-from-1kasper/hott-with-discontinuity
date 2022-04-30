@@ -15,10 +15,11 @@ postulate
   id-ap : ∀ {u} (A : Type u) → ap (id A) ↦ idfun A
   {-# REWRITE id-ap #-}
 
-  P : ∀ {u} (A : Type u) → C A (λ _ → C A (λ _ → Type u))
+postulate
+  P : ∀ {u} → C (Type u) (λ A → C A (λ _ → C A (λ _ → Type u)))
 
 Path : ∀ {u} (A : Type u) → A → A → Type u
-Path A a b = ap (ap (P A) a) b
+Path A a b = ap (ap (ap P A) a) b
 
 postulate
   con : ∀ {u} (A : Type u) → C A (λ a → Path A a a)
@@ -38,10 +39,8 @@ _⬝_ {a = a} {b = b} {c = c} p q = ap (ap (com a b c) p) q
 postulate
   rev-con : ∀ {u} (A : Type u) → C A (λ a → Path (Path A a a) (idp a ⁻¹)      (idp a))
   com-con : ∀ {u} (A : Type u) → C A (λ a → Path (Path A a a) (idp a ⬝ idp a) (idp a))
-
-postulate
-  coe-id : ∀ {u v} {A : Type u} (B : A → Type v) (a : A) → coe {B = B} (idp a) ↦ id (B a)
-  {-# REWRITE coe-id #-}
+  coe-idp : ∀ {u v} {A : Type u} (B : A → Type v) (a : A) → coe {B = B} (idp a) ↦ id (B a)
+  {-# REWRITE coe-idp #-}
 
 PathP : ∀ {u v} {A : Type u} {B : A → Type v} {a b : A} → Path A a b → B a → B b → Type v
 PathP {B = B} {b = b} p x y = Path (B b) (ap (coe p) x) y
