@@ -145,6 +145,26 @@ module _ {u v} {A : Type u} {B : C A (λ _ → Type v)} where
     apd-def : (g : C A (ap B)) (a b : A) (p : Path A a b) → apd B g p ↦ pr₂ (C-elim g 1 ((a , b) , p))
   {-# REWRITE apd-def #-}
 
+infix 10 _~_
+
+_~_ : ∀ {u v} {A : Type u} {B : A → Type v} (f g : (x : A) → B x) → Type (u ⊔ v)
+_~_ {A = A} {B = B} f g = C A (λ x → Path (B x) (f x) (g x))
+
+linv : ∀ {u v} {A : Type u} {B : Type v} → (A → B) → Type (u ⊔ v)
+linv {A = A} {B = B} f = Σ (B → A) (λ g → g ∘ f ~ idfun A)
+
+rinv : ∀ {u v} {A : Type u} {B : Type v} → (A → B) → Type (u ⊔ v)
+rinv {A = A} {B = B} f = Σ (B → A) (λ g → f ∘ g ~ idfun B)
+
+qinv : ∀ {u v} {A : Type u} {B : Type v} → (A → B) → Type (u ⊔ v)
+qinv {A = A} {B = B} f = Σ (B → A) (λ g → g ∘ f ~ idfun A × f ∘ g ~ idfun B)
+
+biinv : ∀ {u v} {A : Type u} {B : Type v} → (A → B) → Type (u ⊔ v)
+biinv f = linv f × rinv f
+
+_≃_ : ∀ {u v} → Type u → Type v → Type (u ⊔ v)
+A ≃ B = Σ (A → B) biinv
+
 hprop : ∀ {u} (A : Type u) → Type u
 hprop A = C (A × A) (λ w → Path A (pr₁ w) (pr₂ w))
 
