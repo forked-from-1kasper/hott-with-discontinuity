@@ -17,10 +17,6 @@ const A B a b = a
 _∘_ : ∀ {u v w} {A : Type u} {B : Type v} {C : Type w} → (B → C) → (A → B) → (A → C)
 (f ∘ g) x = f (g x)
 
-com : ∀ {u v w} {A : Type u} {B : Type v} {C : B → Type w} →
-        ((b : B) → C b) → (g : A → B) → ((a : A) → C (g a))
-com f g x = f (g x)
-
 data 𝟎 : Set where
 
 data 𝟏 : Set where
@@ -96,3 +92,5 @@ data Id {u} (A : Type u) : A → A → Type u where
 idJ : ∀ {u v} {A : Type u} (B : (a b : A) → Id A a b → Type v) →
         ((a : A) → B a a (refl a)) → (a b : A) → (p : Id A a b) → B a b p
 idJ B d _ _ (refl a) = d a
+
+postulate K : ∀ {u} {A : Type u} {a b : A} (p q : Id A a b) → Id (Id A a b) p q
