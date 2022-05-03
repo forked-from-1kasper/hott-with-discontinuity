@@ -38,7 +38,13 @@ postulate
   idp  : ∀ {u} {A : Type u} → (a : ◇ A) → Path A a a -- constant path
   hrev : ∀ {u} {A : Type u} → {a b : ◇ A} → ◇ (Path A a b) → Path A b a -- path reversal
   hcom : ∀ {u} {A : Type u} → {a b c : ◇ A} → ◇ (Path A a b) → ◇ (Path A b c) → Path A a c -- path composition
-  coe  : ∀ {u v} {A : Type u} (B : ◇ A → Type v) {a b : ◇ A} → ◇ (Path A a b) → ◇ (B a) → ◇ (B b)
+
+singl : ∀ {u} {A : Type u} (a : ◇ A) → Type u
+singl {A = A} a = Σ (◇ A) (◇ ∘ Path A a)
+
+postulate
+  coe         : ∀ {u v} {A : Type u} (B : ◇ A → Type v) {a b : ◇ A} → ◇ (Path A a b) → ◇ (B a) → ◇ (B b)
+  singl-contr : ∀ {u} {A : Type u} {a b : ◇ A} (p : ◇ (Path A a b)) → Path (singl a) (η (a , η (idp a))) (η (b , p))
 
 _⁻¹ : ∀ {u} {A : Type u} {a b : ◇ A} → Path A a b → Path A b a
 _⁻¹ = hrev ∘ η
@@ -61,23 +67,6 @@ postulate
                 (x : ◇ (B a)) → coe B q (coe B p x) ↦ coe B (η (hcom p q)) x
   {-# REWRITE rev-idp com-idp coe-idp coe-const coe-com #-}
 
-
-PathP : ∀ {u v} {A : Type u} (B : ◇ A → Type v) {a b : ◇ A} →
-          ◇ (Path A a b) → ◇ (B a) → ◇ (B b) → Type v
-PathP B {b = b} p x y = Path (B b) (coe B p x) y
-
-postulate
-  apd : ∀ {u v} {A : Type u} (B : ◇ A → Type v) {a b : ◇ A}
-          (g : C A B) → (p : ◇ (Path A a b)) → PathP B p (g a) (g b)
-
-cong : ∀ {u v} {A : Type u} {B : Type v} (g : C A (λ _ → B))
-         {a b : ◇ A} → ◇ (Path A a b) → Path B (g a) (g b)
-cong {A = A} {B = B} g p = apd {A = A} (λ _ → B) g p
-
-com : ∀ {u v} {A : Type u} (B : ◇ A → Type v) {a b c : ◇ A} (p : ◇ (Path A a b)) (q : ◇ (Path A b c))
-        {x : ◇ (B a)} {y : ◇ (B b)} {z : ◇ (B c)} → ◇ (PathP B p x y) → ◇ (PathP B q y z) → PathP B (η (hcom p q)) x z
-com B p q α β = hcom (η (cong (coe B q) α)) β
-
 module _ {u v} {A : Type u} {B : A → Type v} where
   postulate
     -- ???
@@ -88,6 +77,27 @@ module _ {u v} {A : Type u} {B : A → Type v} where
 
     π₂-β : (a : A) (b : B a) → π₂ (η (a , b)) ↦ b
     {-# REWRITE π₂-β #-}
+
+J : ∀ {u v} {A : Type u} (B : (a b : ◇ A) → ◇ (Path A a b) → Type v)
+      (d : (a : ◇ A) → ◇ (B a a (η (idp a)))) {a b : ◇ A} →
+      (p : ◇ (Path A a b)) → ◇ (B a b p)
+J B d {a = a} {b = b} p = coe {A = singl a} (λ w → B a (π₁ w) (π₂ w)) (η (singl-contr p)) (d a)
+
+PathP : ∀ {u v} {A : Type u} (B : ◇ A → Type v) {a b : ◇ A} →
+          ◇ (Path A a b) → ◇ (B a) → ◇ (B b) → Type v
+PathP B {b = b} p x y = Path (B b) (coe B p x) y
+
+apd : ∀ {u v} {A : Type u} (B : ◇ A → Type v) {a b : ◇ A}
+        (g : C A B) → (p : ◇ (Path A a b)) → ◇ (PathP B p (g a) (g b))
+apd B g = J (λ a b p → PathP B p (g a) (g b)) (λ x → η (idp (g x)))
+
+cong : ∀ {u v} {A : Type u} {B : Type v} (g : C A (λ _ → B))
+         {a b : ◇ A} → ◇ (Path A a b) → ◇ (Path B (g a) (g b))
+cong {A = A} {B = B} g p = apd {A = A} (λ _ → B) g p
+
+com : ∀ {u v} {A : Type u} (B : ◇ A → Type v) {a b c : ◇ A} (p : ◇ (Path A a b)) (q : ◇ (Path A b c))
+        {x : ◇ (B a)} {y : ◇ (B b)} {z : ◇ (B c)} → ◇ (PathP B p x y) → ◇ (PathP B q y z) → PathP B (η (hcom p q)) x z
+com B p q α β = hcom (cong (coe B q) α) β
 
 -- type of hypercubes in A
 ◻ : ∀ {u} (A : Type u) → ℕ → Type u
@@ -112,7 +122,7 @@ Map A B = (n : ℕ) → C (◻ A n) (◼ B n)
 map : ∀ {u v} {A : Type u} {B : ◇ A → Type v} → C A B → Map A B
 map g zero = g
 map {B = B} g (succ n) σ = η ((map g n (pr₁ (π₁ σ)), map g n (pr₂ (π₁ σ))) ,
-                              η (apd (◼ B n) (map g n) (π₂ σ)))
+                              apd (◼ B n) (map g n) (π₂ σ))
 
 infix 10 _~_
 
