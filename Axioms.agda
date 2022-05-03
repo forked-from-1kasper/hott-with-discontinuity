@@ -92,37 +92,34 @@ module _ {u v} {A : Type u} {B : A → Type v} where
 -- type of hypercubes in A
 ◻ : ∀ {u} (A : Type u) → ℕ → Type u
 ◻ A zero     = A
-◻ A (succ n) = Σ² (◇ (◻ A n)) (Path (◻ A n))
+◻ A (succ n) = Σ² (◇ (◻ A n)) (λ a b → ◇ (Path (◻ A n) a b))
 
 ◻-idp : ∀ {u} {A : Type u} (n : ℕ) → ◇ (◻ A n) → ◻ A (succ n)
-◻-idp n σ = ((σ , σ) , idp σ)
+◻-idp n σ = ((σ , σ) , η (idp σ))
 
 ◼ : ∀ {u v} {A : Type u} (B : ◇ A → Type v) → (n : ℕ) → ◇ (◻ A n) → Type v
 ◼ B zero       = B
 ◼ B (succ n) σ = Σ (◼ B n (pr₁ (π₁ σ)) × ◼ B n (pr₂ (π₁ σ)))
-                   (λ w → PathP (◼ B n) (η (π₂ σ)) (η (pr₁ w)) (η (pr₂ w)))
+                   (λ w → ◇ (PathP (◼ B n) (π₂ σ) (η (pr₁ w)) (η (pr₂ w))))
 
 Map : ∀ {u v} (A : Type u) → (◇ A → Type v) → Type (u ⊔ v)
-Map A B = (n : ℕ) → C (◻ A n) (◼ B n)
+Map A B = (n : ℕ) → Π (◇ (◻ A n)) (◼ B n)
 
-{-
 ◼-idp : ∀ {u v} {A : Type u} (B : ◇ A → Type v) (n : ℕ) →
           {σ : ◇ (◻ A n)} → ◼ B n σ → ◼ B (succ n) (η (◻-idp n σ))
-◼-idp B n ε = ((ε , ε) , idp ε)
+◼-idp B n ε = ((ε , ε) , η (idp (η ε)))
 
-module _ {u v} {A : Type u} {B : C A (λ _ → Type v)} where
+module _ {u v} {A : Type u} {B : ◇ A → Type v} where
   postulate
-    C-elim  : C A (ap B) → Map A B
-    C-left  : (g : C A (ap B)) → (n : ℕ) → (σ : ◻ A (succ n)) → pr₁ (pr₁ (C-elim g (succ n) σ)) ↦ C-elim g n (pr₁ (pr₁ σ))
-    C-right : (g : C A (ap B)) → (n : ℕ) → (σ : ◻ A (succ n)) → pr₂ (pr₁ (C-elim g (succ n) σ)) ↦ C-elim g n (pr₂ (pr₁ σ))
-    ap-def  : (g : C A (ap B)) → (x : A) → ap g x ↦ C-elim g 0 x
-  {-# REWRITE C-β C-η C-left C-right ap-def #-}
+    C-elim    : C A B → Map A B
+    C-left    : (g : C A B) → (n : ℕ) → (σ : ◇ (◻ A (succ n))) → pr₁ (pr₁ (C-elim g (succ n) σ)) ↦ C-elim g n (pr₁ (π₁ σ))
+    C-right   : (g : C A B) → (n : ℕ) → (σ : ◇ (◻ A (succ n))) → pr₂ (pr₁ (C-elim g (succ n) σ)) ↦ C-elim g n (pr₂ (π₁ σ))
+    elim-zero : (g : C A B) → (x : ◇ A) → η (C-elim g 0 x) ↦ g x
+  {-# REWRITE C-left C-right elim-zero #-}
 
   postulate
-    apd-def : (g : C A (ap B)) (a b : A) (p : Path A a b) → apd B g p ↦ pr₂ (C-elim g 1 ((a , b) , p))
+    apd-def : (g : C A B) (σ : ◇ (◻ A 1)) → pr₂ (C-elim g 1 σ) ↦ η (apd B g (π₂ σ))
   {-# REWRITE apd-def #-}
-
--}
 
 infix 10 _~_
 
