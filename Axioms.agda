@@ -103,23 +103,16 @@ module _ {u v} {A : Type u} {B : A → Type v} where
                    (λ w → ◇ (PathP (◼ B n) (π₂ σ) (pr₁ w) (pr₂ w)))
 
 Map : ∀ {u v} (A : Type u) → (◇ A → Type v) → Type (u ⊔ v)
-Map A B = (n : ℕ) → Π (◇ (◻ A n)) (◼ B n)
+Map A B = (n : ℕ) → C (◻ A n) (◼ B n)
 
 ◼-idp : ∀ {u v} {A : Type u} (B : ◇ A → Type v) (n : ℕ) →
           {σ : ◇ (◻ A n)} → ◼ B n σ → ◼ B (succ n) (η (◻-idp n σ))
 ◼-idp B n ε = ((η ε , η ε) , η (idp (η ε)))
 
-module _ {u v} {A : Type u} {B : ◇ A → Type v} where
-  postulate
-    C-elim    : C A B → Map A B
-    C-left    : (g : C A B) → (n : ℕ) → (σ : ◇ (◻ A (succ n))) → pr₁ (pr₁ (C-elim g (succ n) σ)) ↦ η (C-elim g n (pr₁ (π₁ σ)))
-    C-right   : (g : C A B) → (n : ℕ) → (σ : ◇ (◻ A (succ n))) → pr₂ (pr₁ (C-elim g (succ n) σ)) ↦ η (C-elim g n (pr₂ (π₁ σ)))
-    elim-zero : (g : C A B) → (x : ◇ A) → η (C-elim g 0 x) ↦ g x
-  {-# REWRITE C-left C-right elim-zero #-}
-
-  postulate
-    apd-def : (g : C A B) (σ : ◇ (◻ A 1)) → pr₂ (C-elim g 1 σ) ↦ η (apd B g (π₂ σ))
-  {-# REWRITE apd-def #-}
+map : ∀ {u v} {A : Type u} {B : ◇ A → Type v} → C A B → Map A B
+map g zero = g
+map {B = B} g (succ n) σ = η ((map g n (pr₁ (π₁ σ)), map g n (pr₂ (π₁ σ))) ,
+                              η (apd (◼ B n) (map g n) (π₂ σ)))
 
 infix 10 _~_
 
