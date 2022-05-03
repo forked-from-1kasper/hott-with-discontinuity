@@ -99,21 +99,21 @@ module _ {u v} {A : Type u} {B : A → Type v} where
 
 ◼ : ∀ {u v} {A : Type u} (B : ◇ A → Type v) → (n : ℕ) → ◇ (◻ A n) → Type v
 ◼ B zero       = B
-◼ B (succ n) σ = Σ (◼ B n (pr₁ (π₁ σ)) × ◼ B n (pr₂ (π₁ σ)))
-                   (λ w → ◇ (PathP (◼ B n) (π₂ σ) (η (pr₁ w)) (η (pr₂ w))))
+◼ B (succ n) σ = Σ (◇ (◼ B n (pr₁ (π₁ σ))) × ◇ (◼ B n (pr₂ (π₁ σ))))
+                   (λ w → ◇ (PathP (◼ B n) (π₂ σ) (pr₁ w) (pr₂ w)))
 
 Map : ∀ {u v} (A : Type u) → (◇ A → Type v) → Type (u ⊔ v)
 Map A B = (n : ℕ) → Π (◇ (◻ A n)) (◼ B n)
 
 ◼-idp : ∀ {u v} {A : Type u} (B : ◇ A → Type v) (n : ℕ) →
           {σ : ◇ (◻ A n)} → ◼ B n σ → ◼ B (succ n) (η (◻-idp n σ))
-◼-idp B n ε = ((ε , ε) , η (idp (η ε)))
+◼-idp B n ε = ((η ε , η ε) , η (idp (η ε)))
 
 module _ {u v} {A : Type u} {B : ◇ A → Type v} where
   postulate
     C-elim    : C A B → Map A B
-    C-left    : (g : C A B) → (n : ℕ) → (σ : ◇ (◻ A (succ n))) → pr₁ (pr₁ (C-elim g (succ n) σ)) ↦ C-elim g n (pr₁ (π₁ σ))
-    C-right   : (g : C A B) → (n : ℕ) → (σ : ◇ (◻ A (succ n))) → pr₂ (pr₁ (C-elim g (succ n) σ)) ↦ C-elim g n (pr₂ (π₁ σ))
+    C-left    : (g : C A B) → (n : ℕ) → (σ : ◇ (◻ A (succ n))) → pr₁ (pr₁ (C-elim g (succ n) σ)) ↦ η (C-elim g n (pr₁ (π₁ σ)))
+    C-right   : (g : C A B) → (n : ℕ) → (σ : ◇ (◻ A (succ n))) → pr₂ (pr₁ (C-elim g (succ n) σ)) ↦ η (C-elim g n (pr₂ (π₁ σ)))
     elim-zero : (g : C A B) → (x : ◇ A) → η (C-elim g 0 x) ↦ g x
   {-# REWRITE C-left C-right elim-zero #-}
 
