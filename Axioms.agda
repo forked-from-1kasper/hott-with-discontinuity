@@ -172,6 +172,9 @@ set A = strict-truncated A 1
 hgroupoid : ∀ {u} (A : Type u) → Type u
 hgroupoid A = truncated A 2
 
+hcontr : ∀ {u} (A : Type u) → Type u
+hcontr A = Σ (◇ A) (λ a → C A (Path A a))
+
 Id→Path : ∀ {u} {A : Type u} {a b : A} → Id A a b → Path A (η a) (η b)
 Id→Path {A = A} {a = a} {b = b} = idJ (λ a b _ → Path A (η a) (η b)) (λ x → idp (η x)) a b
 
