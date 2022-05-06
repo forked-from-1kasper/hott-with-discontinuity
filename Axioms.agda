@@ -2,7 +2,6 @@
 
 open import Agda.Primitive
 open import Proto
-open import Logic
 
 open Σ
 
